@@ -1,11 +1,42 @@
 # RiskOrbit — Agentic Coordinated Refund-Abuse Sentinel
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests: 102 passed](https://img.shields.io/badge/Tests-102%20passed-brightgreen.svg)](tests/)
-[![Phase: 2 Complete](https://img.shields.io/badge/Phase-2%20Complete-brightgreen.svg)](reports/PHASE2_FINAL_REPORT.md)
-[![FastAPI](https://img.shields.io/badge/API-FastAPI%202.0-009688.svg)](src/api/app.py)
+> **Track 02 — AI Risk Manager | Razorpay AI Buildathon 2026**
 
-> A case-centric, bounded, multi-hop relationship intelligence and grounded evidence framework for detecting and investigating coordinated refund abuse in payment ecosystems.
+RiskOrbit is an agentic risk-management system designed to detect, connect, investigate, explain, and safely respond to **coordinated refund/return abuse rings**.
+
+Individual refund transactions can look legitimate in isolation. RiskOrbit looks across related customers, devices, addresses, payment instruments, transactions, and refund behavior to identify coordinated patterns and turn them into **evidence-backed, auditable risk cases**.
+
+### What RiskOrbit Does
+
+```text
+Transaction / Event
+        │
+        ▼
+Risk Scoring
+        │
+        ▼
+Entity & Behavioral Graph
+        │
+        ▼
+Coordinated Ring Discovery
+        │
+        ▼
+Investigation Agent
+        │
+        ▼
+Evidence-Grounded Case
+        │
+        ▼
+Deterministic Risk Policy
+        │
+        ▼
+Human Approval
+        │
+        ▼
+Bounded / Simulated Intervention
+        │
+        ▼
+Audit Trail + Evaluation
 
 ---
 
@@ -81,7 +112,31 @@ python -m src.api.app
 
 ---
 
+
+## 3.1 Live Application Workflow
+
+After starting the application, the primary demonstration path is:
+
+1. **Authenticate** into RiskOrbit.
+2. **Review the risk dashboard** and current operational posture.
+3. **Open the risk queue** to inspect prioritized cases.
+4. **Open a coordinated-abuse case**.
+5. **Inspect the entity graph** connecting related accounts and behavioral signals.
+6. **Review evidence and investigation findings**.
+7. **Review the deterministic policy decision**.
+8. **Simulate or approve a bounded intervention**, according to the user's authorization.
+9. **Inspect the resulting audit trail**.
+10. **Review evaluation and system-health information**.
+
+This workflow demonstrates the complete RiskOrbit loop:
+
+**Detect → Connect → Investigate → Explain → Decide → Act → Audit**
+
+
+
 ## 4. Key Held-Out Benchmark Results
+
+> These results are reported on held-out evaluation data. Metrics are separated by their measurement target; ring-level recall, transaction-level recall, intervention FPR, and hard-block FPR are not interchangeable.
 
 | Metric | Phase 1 (Frozen Baseline) | Phase 2 (Graph-Enhanced) | Delta / Impact |
 |---|---|---|---|
@@ -128,3 +183,60 @@ python -m src.api.app
 - Hard-Negative Safety: [HARD_NEGATIVE_GRAPH_REPORT.md](reports/HARD_NEGATIVE_GRAPH_REPORT.md)
 - Temporal Generalization: [TEMPORAL_PHASE2_REPORT.md](reports/TEMPORAL_PHASE2_REPORT.md)
 - Diagnostic Failure Analysis: [PHASE2_FAILURE_ANALYSIS.md](reports/PHASE2_FAILURE_ANALYSIS.md)
+
+
+---
+
+## 7. Project Structure
+
+```text
+RiskOrbit/
+├── frontend/                 # Risk operations dashboard
+├── src/                      # Risk engine, graph, investigation and policy logic
+├── configs/                  # Model and system configuration
+├── artifacts/                # Versioned model artifacts and metadata
+├── data/
+│   ├── raw/                  # Generated input data
+│   ├── processed/            # Generated processed data
+│   └── splits/               # Dataset split metadata/manifests
+├── reports/                  # Evaluation and validation reports
+├── scripts/                  # Data generation, training and evaluation scripts
+├── tests/                    # Backend and evaluation tests
+├── docs/                     # Supporting technical documentation
+├── prompts/                  # Investigation-agent prompt assets
+├── README.md
+├── .env.example
+└── Dockerfile.backend
+
+
+```markdown
+## 8. Engineering Lessons
+
+RiskOrbit was developed iteratively rather than assuming the first implementation was correct.
+
+Key engineering issues addressed during development included:
+
+- Preventing evaluation leakage between training and held-out data
+- Separating ring-level metrics from transaction-level metrics
+- Controlling false-positive cost for automated interventions
+- Handling hard-negative cases that resemble coordinated abuse
+- Grounding investigation outputs in explicit evidence
+- Separating model scoring from deterministic policy decisions
+- Preserving human approval for controlled interventions
+- Maintaining an auditable record of risk decisions and actions
+
+The resulting architecture intentionally favors **measurability, explainability, controlled action, and safe failure** over unconstrained autonomous behavior.
+
+
+---
+
+## 9. Defensive-Only Statement
+
+RiskOrbit is built exclusively for defensive payment-risk management and research evaluation.
+
+The project focuses on detecting and investigating coordinated refund/return abuse using synthetic data and controlled interventions. It does not provide offensive security capabilities and does not authorize irreversible production actions autonomously.
+
+
+
+
+
