@@ -1,0 +1,13 @@
+{
+  "dataset_version": "phase1-v1",
+  "algorithm": "SHA256",
+  "train_csv_sha256": "2edf065e01677a095ca429808d716ca9fa140a2b2a57893ea681815acc13129d",
+  "validation_csv_sha256": "a521d2540737028b342de89dcd576bc6599ea332543555b3e1bd9d379db14600",
+  "heldout_test_csv_sha256": "f0fe47be1191db1bbb62ab61f1747b952926d2fd2cc2adc72c3835a173dd164c",
+  "train_rows": 133446,
+  "val_rows": 28581,
+  "test_rows": 28591,
+  "train_abuse_rate": 0.010333767966068672,
+  "val_abuse_rate": 0.009831706378363248,
+  "test_abuse_rate": 0.01014305200937358
+}

@@ -1,0 +1,412 @@
+{
+  "evaluation_timestamp": "2026-09-01T04:16:17.076633+00:00",
+  "dataset_checksum": "f0fe47be1191db1bbb62ab61f1747b952926d2fd2cc2adc72c3835a173dd164c",
+  "dataset_rows": 28591,
+  "abuse_rows": 290,
+  "benign_rows": 28301,
+  "total_volume_inr": 29540435.970000003,
+  "total_abuse_volume_inr": 1317260.28,
+  "phase1_point_model": {
+    "name": "Phase 1 (Point Model E)",
+    "confusion_matrix": {
+      "TP": 83,
+      "TN": 28148,
+      "FP": 153,
+      "FN": 207
+    },
+    "precision": 0.3517,
+    "recall": 0.2862,
+    "f1": 0.3156,
+    "pr_auc": 0.0969,
+    "fpr_pct": 0.54,
+    "intervention_fpr_pct": 0.54,
+    "hard_block_rate_pct": 0.83,
+    "hard_block_fpr_pct": 0.54,
+    "fp_cost_inr": 19890.0,
+    "ring_metrics": {
+      "total_rings": 24,
+      "detection_recall": 0.4583,
+      "intervention_recall": 0.4583,
+      "hard_block_recall": 0.4583,
+      "strong_ring_recall": 0.2917,
+      "complete_ring_detection_rate": 0.125
+    },
+    "pattern_metrics": {
+      "pattern_A_rings": 12,
+      "pattern_A_detected": 1,
+      "pattern_A_intervened": 1,
+      "pattern_A_hard_blocked": 1,
+      "pattern_A_recall": 0.08333333333333333,
+      "pattern_A_intervention_recall": 0.08333333333333333,
+      "pattern_B_rings": 4,
+      "pattern_B_detected": 2,
+      "pattern_B_intervened": 2,
+      "pattern_B_hard_blocked": 2,
+      "pattern_B_recall": 0.5,
+      "pattern_B_intervention_recall": 0.5,
+      "pattern_C_rings": 8,
+      "pattern_C_detected": 8,
+      "pattern_C_intervened": 8,
+      "pattern_C_hard_blocked": 8,
+      "pattern_C_recall": 1.0,
+      "pattern_C_intervention_recall": 1.0
+    },
+    "operational": {
+      "intervention_rate_pct": 0.83,
+      "hard_block_rate_pct": 0.83,
+      "hard_block_fpr_pct": 0.54,
+      "hard_block_count": 236,
+      "legitimate_hard_blocks": 153,
+      "abuse_hard_blocks": 83,
+      "review_rate_pct": 0.0,
+      "review_count": 0,
+      "legitimate_transactions_affected": 153,
+      "legitimate_customers_affected": 146
+    },
+    "economics": {
+      "gross_synthetic_abuse_volume_inr": 1317260.28,
+      "modeled_prevented_loss_inr": 336119.45,
+      "uncaught_abuse_loss_inr": 981140.83,
+      "benign_friction_cost_inr": 19890.0,
+      "review_cost_inr": 0.0,
+      "total_operational_cost_inr": 19890.0,
+      "net_modeled_utility_inr": 316229.45
+    },
+    "action_distribution": {
+      "ALLOW": 28355,
+      "BLOCK_TRANSACTION": 236
+    }
+  },
+  "phase22_blanket_expansion": {
+    "name": "Phase 2.2 (Blanket Expansion)",
+    "confusion_matrix": {
+      "TP": 290,
+      "TN": 28029,
+      "FP": 272,
+      "FN": 0
+    },
+    "precision": 0.516,
+    "recall": 1.0,
+    "f1": 0.6808,
+    "pr_auc": 0.0969,
+    "fpr_pct": 0.96,
+    "intervention_fpr_pct": 0.96,
+    "hard_block_rate_pct": 1.97,
+    "hard_block_fpr_pct": 0.96,
+    "fp_cost_inr": 35360.0,
+    "ring_metrics": {
+      "total_rings": 24,
+      "detection_recall": 1.0,
+      "intervention_recall": 1.0,
+      "hard_block_recall": 1.0,
+      "strong_ring_recall": 1.0,
+      "complete_ring_detection_rate": 1.0
+    },
+    "pattern_metrics": {
+      "pattern_A_rings": 12,
+      "pattern_A_detected": 12,
+      "pattern_A_intervened": 12,
+      "pattern_A_hard_blocked": 12,
+      "pattern_A_recall": 1.0,
+      "pattern_A_intervention_recall": 1.0,
+      "pattern_B_rings": 4,
+      "pattern_B_detected": 4,
+      "pattern_B_intervened": 4,
+      "pattern_B_hard_blocked": 4,
+      "pattern_B_recall": 1.0,
+      "pattern_B_intervention_recall": 1.0,
+      "pattern_C_rings": 8,
+      "pattern_C_detected": 8,
+      "pattern_C_intervened": 8,
+      "pattern_C_hard_blocked": 8,
+      "pattern_C_recall": 1.0,
+      "pattern_C_intervention_recall": 1.0
+    },
+    "operational": {
+      "intervention_rate_pct": 1.97,
+      "hard_block_rate_pct": 1.97,
+      "hard_block_fpr_pct": 0.96,
+      "hard_block_count": 562,
+      "legitimate_hard_blocks": 272,
+      "abuse_hard_blocks": 290,
+      "review_rate_pct": 0.0,
+      "review_count": 0,
+      "legitimate_transactions_affected": 272,
+      "legitimate_customers_affected": 201
+    },
+    "economics": {
+      "gross_synthetic_abuse_volume_inr": 1317260.28,
+      "modeled_prevented_loss_inr": 1317260.28,
+      "uncaught_abuse_loss_inr": 0.0,
+      "benign_friction_cost_inr": 35360.0,
+      "review_cost_inr": 0.0,
+      "total_operational_cost_inr": 35360.0,
+      "net_modeled_utility_inr": 1281900.28
+    },
+    "action_distribution": {
+      "ALLOW": 28029,
+      "BLOCK_TRANSACTION": 562
+    }
+  },
+  "phase31_binary_gating": {
+    "name": "Phase 3.1 (Binary Gating)",
+    "confusion_matrix": {
+      "TP": 107,
+      "TN": 28123,
+      "FP": 178,
+      "FN": 183
+    },
+    "precision": 0.3754,
+    "recall": 0.369,
+    "f1": 0.3722,
+    "pr_auc": 0.0969,
+    "fpr_pct": 0.63,
+    "intervention_fpr_pct": 0.63,
+    "hard_block_rate_pct": 1.0,
+    "hard_block_fpr_pct": 0.63,
+    "fp_cost_inr": 23140.0,
+    "ring_metrics": {
+      "total_rings": 24,
+      "detection_recall": 1.0,
+      "intervention_recall": 1.0,
+      "hard_block_recall": 1.0,
+      "strong_ring_recall": 0.25,
+      "complete_ring_detection_rate": 0.0833
+    },
+    "pattern_metrics": {
+      "pattern_A_rings": 12,
+      "pattern_A_detected": 12,
+      "pattern_A_intervened": 12,
+      "pattern_A_hard_blocked": 12,
+      "pattern_A_recall": 1.0,
+      "pattern_A_intervention_recall": 1.0,
+      "pattern_B_rings": 4,
+      "pattern_B_detected": 4,
+      "pattern_B_intervened": 4,
+      "pattern_B_hard_blocked": 4,
+      "pattern_B_recall": 1.0,
+      "pattern_B_intervention_recall": 1.0,
+      "pattern_C_rings": 8,
+      "pattern_C_detected": 8,
+      "pattern_C_intervened": 8,
+      "pattern_C_hard_blocked": 8,
+      "pattern_C_recall": 1.0,
+      "pattern_C_intervention_recall": 1.0
+    },
+    "operational": {
+      "intervention_rate_pct": 1.0,
+      "hard_block_rate_pct": 1.0,
+      "hard_block_fpr_pct": 0.63,
+      "hard_block_count": 285,
+      "legitimate_hard_blocks": 178,
+      "abuse_hard_blocks": 107,
+      "review_rate_pct": 0.0,
+      "review_count": 0,
+      "legitimate_transactions_affected": 178,
+      "legitimate_customers_affected": 158
+    },
+    "economics": {
+      "gross_synthetic_abuse_volume_inr": 1317260.28,
+      "modeled_prevented_loss_inr": 431545.47,
+      "uncaught_abuse_loss_inr": 885714.81,
+      "benign_friction_cost_inr": 23140.0,
+      "review_cost_inr": 0.0,
+      "total_operational_cost_inr": 23140.0,
+      "net_modeled_utility_inr": 408405.47
+    },
+    "action_distribution": {
+      "ALLOW": 28306,
+      "BLOCK_TRANSACTION": 285
+    }
+  },
+  "phase32_final_tiered": {
+    "name": "Phase 3.2 FINAL (Tiered Interventions)",
+    "confusion_matrix": {
+      "TP": 76,
+      "TN": 28175,
+      "FP": 126,
+      "FN": 214
+    },
+    "precision": 0.3762,
+    "recall": 0.2621,
+    "f1": 0.3089,
+    "pr_auc": 0.0969,
+    "fpr_pct": 0.45,
+    "intervention_fpr_pct": 0.45,
+    "hard_block_rate_pct": 0.09,
+    "hard_block_fpr_pct": 0.04,
+    "fp_cost_inr": 3660.0,
+    "ring_metrics": {
+      "total_rings": 24,
+      "detection_recall": 1.0,
+      "intervention_recall": 1.0,
+      "hard_block_recall": 0.4583,
+      "strong_ring_recall": 0.1667,
+      "complete_ring_detection_rate": 0.0
+    },
+    "pattern_metrics": {
+      "pattern_A_rings": 12,
+      "pattern_A_detected": 12,
+      "pattern_A_intervened": 12,
+      "pattern_A_hard_blocked": 1,
+      "pattern_A_recall": 1.0,
+      "pattern_A_intervention_recall": 1.0,
+      "pattern_B_rings": 4,
+      "pattern_B_detected": 4,
+      "pattern_B_intervened": 4,
+      "pattern_B_hard_blocked": 2,
+      "pattern_B_recall": 1.0,
+      "pattern_B_intervention_recall": 1.0,
+      "pattern_C_rings": 8,
+      "pattern_C_detected": 8,
+      "pattern_C_intervened": 8,
+      "pattern_C_hard_blocked": 8,
+      "pattern_C_recall": 1.0,
+      "pattern_C_intervention_recall": 1.0
+    },
+    "operational": {
+      "intervention_rate_pct": 0.71,
+      "hard_block_rate_pct": 0.09,
+      "hard_block_fpr_pct": 0.04,
+      "hard_block_count": 27,
+      "legitimate_hard_blocks": 12,
+      "abuse_hard_blocks": 15,
+      "review_rate_pct": 0.0,
+      "review_count": 0,
+      "legitimate_transactions_affected": 126,
+      "legitimate_customers_affected": 109
+    },
+    "economics": {
+      "gross_synthetic_abuse_volume_inr": 1317260.28,
+      "modeled_prevented_loss_inr": 282897.45,
+      "uncaught_abuse_loss_inr": 1034362.83,
+      "benign_friction_cost_inr": 3660.0,
+      "review_cost_inr": 0.0,
+      "total_operational_cost_inr": 3660.0,
+      "net_modeled_utility_inr": 279237.45
+    },
+    "action_distribution": {
+      "ALLOW": 28389,
+      "STEP_UP_2FA": 149,
+      "DELAY_SETTLEMENT": 26,
+      "BLOCK_TRANSACTION": 27
+    }
+  },
+  "hard_negatives": {
+    "household_sharing": {
+      "txns": 905,
+      "policy_b_blocks": 0,
+      "policy_b_cost": 0.0,
+      "policy_d_blocks": 0,
+      "policy_d_cost": 0.0,
+      "cost_reduction_pct": 100.0
+    },
+    "shared_network": {
+      "txns": 1192,
+      "policy_b_blocks": 8,
+      "policy_b_cost": 1040.0,
+      "policy_d_blocks": 0,
+      "policy_d_cost": 15.0,
+      "cost_reduction_pct": 98.6
+    },
+    "high_refund_customer": {
+      "txns": 1117,
+      "policy_b_blocks": 9,
+      "policy_b_cost": 1170.0,
+      "policy_d_blocks": 0,
+      "policy_d_cost": 60.0,
+      "cost_reduction_pct": 94.9
+    },
+    "multi_device_customer": {
+      "txns": 601,
+      "policy_b_blocks": 3,
+      "policy_b_cost": 390.0,
+      "policy_d_blocks": 0,
+      "policy_d_cost": 0.0,
+      "cost_reduction_pct": 100.0
+    },
+    "high_volume_merchant": {
+      "txns": 9558,
+      "policy_b_blocks": 43,
+      "policy_b_cost": 5590.0,
+      "policy_d_blocks": 0,
+      "policy_d_cost": 90.0,
+      "cost_reduction_pct": 98.4
+    }
+  },
+  "safety_audit": {
+    "all_invariants_passed": true,
+    "invariants_passed_count": "5/5",
+    "hard_negative_hard_blocks": 0,
+    "unsafe_actions_count": 0,
+    "human_gate_bypass_count": 0,
+    "scope_isolation_violations": 0
+  },
+  "evidence_audit": {
+    "grounding_rate": 1.0,
+    "provenance_completeness": 1.0,
+    "invalid_evidence_count": 0
+  },
+  "demo_cases": [
+    {
+      "pattern": "RING_A",
+      "transaction_id": "TXN_037490dc41",
+      "customer_id": "CUS_00011040",
+      "amount_inr": 2553.44,
+      "phase1_risk": 0.0047,
+      "tier": "SECONDARY",
+      "membership_confidence": 0.3571,
+      "evidence_strength": 0.6,
+      "decision_score": 0.2345,
+      "recommended_action": "ALLOW",
+      "requires_human_approval": false,
+      "escalation_reason": null,
+      "reason": "SECONDARY member cleared: insufficient transaction risk (p1=0.0047 < 0.15)"
+    },
+    {
+      "pattern": "RING_B",
+      "transaction_id": "TXN_09ac58f0f7",
+      "customer_id": "CUS_00005082",
+      "amount_inr": 6577.2,
+      "phase1_risk": 0.0048,
+      "tier": "TERTIARY",
+      "membership_confidence": 0.2453,
+      "evidence_strength": 0.4,
+      "decision_score": 0.1451,
+      "recommended_action": "ALLOW",
+      "requires_human_approval": false,
+      "escalation_reason": null,
+      "reason": "TERTIARY member cleared: weak indirect connection with insufficient individual risk"
+    },
+    {
+      "pattern": "RING_C",
+      "transaction_id": "TXN_0038a1d056",
+      "customer_id": "CUS_RING_C_0000_003",
+      "amount_inr": 6490.32,
+      "phase1_risk": 0.355,
+      "tier": "SECONDARY",
+      "membership_confidence": 0.4926,
+      "evidence_strength": 0.8,
+      "decision_score": 0.4392,
+      "recommended_action": "STEP_UP_2FA",
+      "requires_human_approval": false,
+      "escalation_reason": null,
+      "reason": "SECONDARY ring member flagged with corroborating risk (composite=0.4392, p1=0.3550)"
+    },
+    {
+      "pattern": "HARD_NEGATIVE (household_sharing)",
+      "transaction_id": "TXN_000f09b499",
+      "customer_id": "CUS_00019935",
+      "amount_inr": 298.2,
+      "phase1_risk": 0.0049,
+      "tier": "ISOLATED",
+      "membership_confidence": 0.0,
+      "evidence_strength": 0.0,
+      "decision_score": 0.0049,
+      "recommended_action": "ALLOW",
+      "requires_human_approval": false,
+      "escalation_reason": null,
+      "reason": "Cleared: Isolated transaction with low individual risk (p1=0.0049)"
+    }
+  ]
+}

@@ -1,0 +1,171 @@
+{
+  "phase": "2.1",
+  "timestamp": "2026-08-27T12:17:43.572604+00:00",
+  "selected_k": 1000,
+  "metrics": {
+    "precision": 0.0059,
+    "recall": 0.4414,
+    "f1": 0.0116,
+    "prauc": 0.0176,
+    "fpr": 0.7623,
+    "fp_cost": 2804750,
+    "tp": 128,
+    "fp": 21575,
+    "fn": 162,
+    "tn": 6726,
+    "total_rings": 24,
+    "ring_recall": 0.625,
+    "strong_ring_recall": 0.5833,
+    "complete_ring_detection": 0.1667,
+    "pat_a_recall": 0.9167,
+    "pat_b_recall": 1.0,
+    "pat_c_recall": 0.0
+  },
+  "source_overlap": {
+    "Phase 1 only": {
+      "unique_candidates": 85,
+      "true_abuse": 55,
+      "rings": 8,
+      "a": 0,
+      "b": 0,
+      "c": 8
+    },
+    "Graph only": {
+      "unique_candidates": 12113,
+      "true_abuse": 78,
+      "rings": 16,
+      "a": 12,
+      "b": 4,
+      "c": 0
+    },
+    "Both": {
+      "unique_candidates": 375,
+      "true_abuse": 5,
+      "rings": 3,
+      "a": 1,
+      "b": 2,
+      "c": 0
+    },
+    "Total Hybrid": {
+      "unique_candidates": 12573,
+      "true_abuse": 138,
+      "rings": 24,
+      "a": 12,
+      "b": 4,
+      "c": 8
+    }
+  },
+  "hard_negatives": {
+    "high_refund_customer": {
+      "txns": 1117,
+      "customers": 366,
+      "cands_in_budget": 136,
+      "flagged_customers": 281,
+      "fp_txns": 825,
+      "fpr": 0.7386,
+      "fp_cost": 107250
+    },
+    "high_volume_merchant": {
+      "txns": 9558,
+      "customers": 7769,
+      "cands_in_budget": 495,
+      "flagged_customers": 4845,
+      "fp_txns": 5968,
+      "fpr": 0.6244,
+      "fp_cost": 775840
+    },
+    "household_sharing": {
+      "txns": 905,
+      "customers": 568,
+      "cands_in_budget": 34,
+      "flagged_customers": 442,
+      "fp_txns": 706,
+      "fpr": 0.7801,
+      "fp_cost": 91780
+    },
+    "multi_device_customer": {
+      "txns": 601,
+      "customers": 279,
+      "cands_in_budget": 8,
+      "flagged_customers": 259,
+      "fp_txns": 560,
+      "fpr": 0.9318,
+      "fp_cost": 72800
+    },
+    "shared_network": {
+      "txns": 1192,
+      "customers": 876,
+      "cands_in_budget": 63,
+      "flagged_customers": 714,
+      "fp_txns": 968,
+      "fpr": 0.8121,
+      "fp_cost": 125840
+    },
+    "general_legitimate": {
+      "txns": 14928,
+      "customers": 7239,
+      "cands_in_budget": 599,
+      "flagged_customers": 5467,
+      "fp_txns": 12548,
+      "fpr": 0.8406,
+      "fp_cost": 1631240
+    }
+  },
+  "budget_ablation": [
+    {
+      "budget_k": 50,
+      "investigated": 50,
+      "ring_recall": 0.0417,
+      "pat_a": 0,
+      "pat_b": 1,
+      "pat_c": 0,
+      "cand_precision": 0.02,
+      "fp_cost": 6370
+    },
+    {
+      "budget_k": 100,
+      "investigated": 100,
+      "ring_recall": 0.125,
+      "pat_a": 1,
+      "pat_b": 2,
+      "pat_c": 0,
+      "cand_precision": 0.03,
+      "fp_cost": 12610
+    },
+    {
+      "budget_k": 250,
+      "investigated": 250,
+      "ring_recall": 0.125,
+      "pat_a": 1,
+      "pat_b": 2,
+      "pat_c": 0,
+      "cand_precision": 0.012,
+      "fp_cost": 32110
+    },
+    {
+      "budget_k": 500,
+      "investigated": 500,
+      "ring_recall": 0.1667,
+      "pat_a": 2,
+      "pat_b": 2,
+      "pat_c": 0,
+      "cand_precision": 0.008,
+      "fp_cost": 64480
+    },
+    {
+      "budget_k": 1000,
+      "investigated": 1000,
+      "ring_recall": 0.25,
+      "pat_a": 2,
+      "pat_b": 4,
+      "pat_c": 0,
+      "cand_precision": 0.008,
+      "fp_cost": 128960
+    }
+  ],
+  "latencies": {
+    "avg_ms": 77.65,
+    "p95_ms": 85.58
+  },
+  "grounding_rate": 1.0
+}

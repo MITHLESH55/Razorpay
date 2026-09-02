@@ -1,0 +1,311 @@
+{
+  "phase": "2.2",
+  "timestamp": "2026-08-27T12:54:03.072798+00:00",
+  "frozen_config": {
+    "K": 1000,
+    "P": 150,
+    "p1_threshold": 0.35
+  },
+  "guardrails": {
+    "pat_a_min": 0.65,
+    "pat_b_min": 0.2357,
+    "ring_recall_min": 0.35,
+    "fpr_max": 0.9
+  },
+  "guardrails_passed": {
+    "pat_a": true,
+    "pat_b": true,
+    "ring_recall": true,
+    "fpr": true
+  },
+  "validation_ablation": [
+    {
+      "protected_quota": 0,
+      "total_in_budget": 1000,
+      "protected_slots_used": 0,
+      "ring_recall": 0.375,
+      "pat_a_recall": 0.7,
+      "pat_b_recall": 0.2857,
+      "pat_c_recall": 0.0,
+      "pat_a_covered": 7,
+      "pat_b_covered": 2,
+      "pat_c_covered": 0,
+      "fp_in_budget": 997,
+      "fpr_candidate": 0.0747,
+      "multi_obj_score": 3.6324
+    },
+    {
+      "protected_quota": 50,
+      "total_in_budget": 1000,
+      "protected_slots_used": 50,
+      "ring_recall": 0.375,
+      "pat_a_recall": 0.7,
+      "pat_b_recall": 0.2857,
+      "pat_c_recall": 0.0,
+      "pat_a_covered": 7,
+      "pat_b_covered": 2,
+      "pat_c_covered": 0,
+      "fp_in_budget": 997,
+      "fpr_candidate": 0.0747,
+      "multi_obj_score": 3.6324
+    },
+    {
+      "protected_quota": 100,
+      "total_in_budget": 1000,
+      "protected_slots_used": 100,
+      "ring_recall": 0.4583,
+      "pat_a_recall": 0.7,
+      "pat_b_recall": 0.2857,
+      "pat_c_recall": 0.2857,
+      "pat_a_covered": 7,
+      "pat_b_covered": 2,
+      "pat_c_covered": 2,
+      "fp_in_budget": 989,
+      "fpr_candidate": 0.0741,
+      "multi_obj_score": 4.9425
+    },
+    {
+      "protected_quota": 150,
+      "total_in_budget": 1000,
+      "protected_slots_used": 150,
+      "ring_recall": 0.4583,
+      "pat_a_recall": 0.7,
+      "pat_b_recall": 0.2857,
+      "pat_c_recall": 0.2857,
+      "pat_a_covered": 7,
+      "pat_b_covered": 2,
+      "pat_c_covered": 2,
+      "fp_in_budget": 988,
+      "fpr_candidate": 0.0741,
+      "multi_obj_score": 4.9426
+    },
+    {
+      "protected_quota": 200,
+      "total_in_budget": 1000,
+      "protected_slots_used": 200,
+      "ring_recall": 0.625,
+      "pat_a_recall": 0.6,
+      "pat_b_recall": 0.2857,
+      "pat_c_recall": 1.0,
+      "pat_a_covered": 6,
+      "pat_b_covered": 2,
+      "pat_c_covered": 7,
+      "fp_in_budget": 949,
+      "fpr_candidate": 0.0711,
+      "multi_obj_score": 7.836
+    },
+    {
+      "protected_quota": 300,
+      "total_in_budget": 1000,
+      "protected_slots_used": 250,
+      "ring_recall": 0.625,
+      "pat_a_recall": 0.6,
+      "pat_b_recall": 0.2857,
+      "pat_c_recall": 1.0,
+      "pat_a_covered": 6,
+      "pat_b_covered": 2,
+      "pat_c_covered": 7,
+      "fp_in_budget": 947,
+      "fpr_candidate": 0.071,
+      "multi_obj_score": 7.8362
+    }
+  ],
+  "selected_p": 150,
+  "phase21_baseline": {
+    "ring_recall": 0.625,
+    "pat_a": 0.9167,
+    "pat_b": 1.0,
+    "pat_c": 0.0,
+    "strong_ring_recall": 0.5833,
+    "complete_ring": 0.1667,
+    "precision": 0.0059,
+    "recall": 0.4414,
+    "f1": 0.0116,
+    "prauc": 0.0176,
+    "fpr": 0.7623,
+    "fp_cost": 2804750
+  },
+  "metrics": {
+    "precision": 0.0066,
+    "recall": 0.4897,
+    "f1": 0.013,
+    "prauc": 0.0173,
+    "fpr": 0.7577,
+    "fp_cost": 2787590,
+    "tp": 142,
+    "fp": 21443,
+    "fn": 148,
+    "tn": 6858,
+    "total_rings": 24,
+    "confirmed_rings": 19,
+    "ring_recall": 0.7917,
+    "strong_ring_recall": 0.7083,
+    "complete_ring_detection": 0.125,
+    "pat_a_recall": 1.0,
+    "pat_b_recall": 1.0,
+    "pat_c_recall": 0.375,
+    "pat_a_confirmed": 12,
+    "pat_b_confirmed": 4,
+    "pat_c_confirmed": 3,
+    "pat_a_total": 12,
+    "pat_b_total": 4,
+    "pat_c_total": 8
+  },
+  "source_overlap": {
+    "Phase 1 only": {
+      "unique_candidates": 85,
+      "true_abuse": 55,
+      "rings": 8,
+      "a": 0,
+      "b": 0,
+      "c": 8
+    },
+    "Graph only": {
+      "unique_candidates": 12113,
+      "true_abuse": 78,
+      "rings": 16,
+      "a": 12,
+      "b": 4,
+      "c": 0
+    },
+    "Both": {
+      "unique_candidates": 375,
+      "true_abuse": 5,
+      "rings": 3,
+      "a": 1,
+      "b": 2,
+      "c": 0
+    },
+    "Total Hybrid": {
+      "unique_candidates": 12573,
+      "true_abuse": 138,
+      "rings": 24,
+      "a": 12,
+      "b": 4,
+      "c": 8
+    },
+    "Final Budget (protected)": {
+      "unique_candidates": 1000,
+      "true_abuse": 19,
+      "rings": 8,
+      "a": 2,
+      "b": 3,
+      "c": 3
+    }
+  },
+  "hard_negatives": {
+    "high_refund_customer": {
+      "txns": 1117,
+      "customers": 366,
+      "flagged_customers": 276,
+      "fp_txns": 812,
+      "fpr": 0.7269,
+      "fp_cost": 105560
+    },
+    "high_volume_merchant": {
+      "txns": 9558,
+      "customers": 7769,
+      "flagged_customers": 4778,
+      "fp_txns": 5881,
+      "fpr": 0.6153,
+      "fp_cost": 764530
+    },
+    "household_sharing": {
+      "txns": 905,
+      "customers": 568,
+      "flagged_customers": 438,
+      "fp_txns": 701,
+      "fpr": 0.7746,
+      "fp_cost": 91130
+    },
+    "multi_device_customer": {
+      "txns": 601,
+      "customers": 279,
+      "flagged_customers": 258,
+      "fp_txns": 561,
+      "fpr": 0.9334,
+      "fp_cost": 72930
+    },
+    "shared_network": {
+      "txns": 1192,
+      "customers": 876,
+      "flagged_customers": 715,
+      "fp_txns": 971,
+      "fpr": 0.8146,
+      "fp_cost": 126230
+    }
+  },
+  "funnel_audit": {
+    "label": "held_out_test",
+    "n_pat_c_rings": 8,
+    "stages": [
+      {
+        "stage": "Ground Truth",
+        "rings": 8,
+        "recall": "100.0%",
+        "members": 68,
+        "txns": 102
+      },
+      {
+        "stage": "Phase 1 (score>=0.20)",
+        "rings": 8,
+        "recall": "100.0%",
+        "members": 55,
+        "txns": null
+      },
+      {
+        "stage": "Phase 1 (score>=p1_thr)",
+        "rings": 8,
+        "recall": "100.0%",
+        "members": 53,
+        "txns": null
+      },
+      {
+        "stage": "Graph Candidates",
+        "rings": 0,
+        "recall": "0.0%",
+        "members": 0,
+        "txns": null
+      },
+      {
+        "stage": "Union (deduplicated)",
+        "rings": 8,
+        "recall": "100.0%",
+        "members": 55,
+        "txns": null
+      },
+      {
+        "stage": "Hybrid Ranked (all)",
+        "rings": 8,
+        "recall": "100.0%",
+        "members": null,
+        "txns": null
+      },
+      {
+        "stage": "K Budget (K=1000)",
+        "rings": 3,
+        "recall": "37.5%",
+        "members": 12,
+        "txns": null
+      },
+      {
+        "stage": "Investigation Final",
+        "rings": 3,
+        "recall": "37.5%",
+        "members": 12,
+        "txns": null
+      }
+    ]
+  },
+  "latencies": {
+    "avg_ms": 81.59,
+    "p95_ms": 92.35
+  },
+  "grounding_rate": 1.0,
+  "pattern_delta_vs_p21": {
+    "pat_a": 0.0833,
+    "pat_b": 0.0,
+    "pat_c": 0.375,
+    "ring_recall": 0.1667
+  }
+}

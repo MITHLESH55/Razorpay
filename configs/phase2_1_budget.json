@@ -1,0 +1,70 @@
+{
+  "phase": "2.1",
+  "frozen_investigation_budget_k": 1000,
+  "selection_partition": "validation",
+  "ablation_summary": {
+    "selected_k": 1000,
+    "ablation_results": [
+      {
+        "budget_k": 50,
+        "investigated_candidates": 50,
+        "true_abuse_candidates": 2,
+        "candidate_precision": 0.04,
+        "covered_rings": 2,
+        "total_val_rings": 24,
+        "ring_recall": 0.0833,
+        "pattern_a_covered": 2,
+        "pattern_b_covered": 0,
+        "pattern_c_covered": 0
+      },
+      {
+        "budget_k": 100,
+        "investigated_candidates": 100,
+        "true_abuse_candidates": 3,
+        "candidate_precision": 0.03,
+        "covered_rings": 3,
+        "total_val_rings": 24,
+        "ring_recall": 0.125,
+        "pattern_a_covered": 3,
+        "pattern_b_covered": 0,
+        "pattern_c_covered": 0
+      },
+      {
+        "budget_k": 250,
+        "investigated_candidates": 250,
+        "true_abuse_candidates": 4,
+        "candidate_precision": 0.016,
+        "covered_rings": 4,
+        "total_val_rings": 24,
+        "ring_recall": 0.1667,
+        "pattern_a_covered": 4,
+        "pattern_b_covered": 0,
+        "pattern_c_covered": 0
+      },
+      {
+        "budget_k": 500,
+        "investigated_candidates": 500,
+        "true_abuse_candidates": 8,
+        "candidate_precision": 0.016,
+        "covered_rings": 5,
+        "total_val_rings": 24,
+        "ring_recall": 0.2083,
+        "pattern_a_covered": 4,
+        "pattern_b_covered": 1,
+        "pattern_c_covered": 0
+      },
+      {
+        "budget_k": 1000,
+        "investigated_candidates": 1000,
+        "true_abuse_candidates": 12,
+        "candidate_precision": 0.012,
+        "covered_rings": 8,
+        "total_val_rings": 24,
+        "ring_recall": 0.3333,
+        "pattern_a_covered": 6,
+        "pattern_b_covered": 2,
+        "pattern_c_covered": 0
+      }
+    ]
+  }
+}

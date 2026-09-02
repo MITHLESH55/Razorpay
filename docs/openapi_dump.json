@@ -1,0 +1,7051 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RiskOrbit Risk Scoring & Investigation API",
+    "description": "Phase 1 + Phase 2 \u2014 Coordinated Refund Abuse Detection & Relationship Investigation. Phase 1: transaction-level risk scoring. Phase 2: bounded graph investigation and grounded evidence generation.",
+    "version": "2.0.0"
+  },
+  "paths": {
+    "/api/v2/ops/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication & Session"
+        ],
+        "summary": "Login",
+        "description": "Authenticate user via email, username, or demo user identifier.\nReturns Bearer token and validated user context with role capabilities.",
+        "operationId": "login_api_v2_ops_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/auth/session": {
+      "get": {
+        "tags": [
+          "Authentication & Session"
+        ],
+        "summary": "Validate Session",
+        "description": "Validate the current active session token and return identity + permissions.",
+        "operationId": "validate_session_api_v2_ops_auth_session_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionValidateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/auth/logout": {
+      "post": {
+        "tags": [
+          "Authentication & Session"
+        ],
+        "summary": "Logout",
+        "description": "Invalidate session token and terminate analyst session.",
+        "operationId": "logout_api_v2_ops_auth_logout_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/auth/demo-users": {
+      "get": {
+        "tags": [
+          "Authentication & Session"
+        ],
+        "summary": "List Demo Users",
+        "description": "List pre-seeded enterprise analyst demo accounts for quick switcher access.",
+        "operationId": "list_demo_users_api_v2_ops_auth_demo_users_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DemoUserRecord"
+                  },
+                  "type": "array",
+                  "title": "Response List Demo Users Api V2 Ops Auth Demo Users Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Readiness Probe",
+        "description": "Check component availability (api, model, graph, evidence, policy, persistence).",
+        "operationId": "readiness_probe_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/live": {
+      "get": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Liveness Probe",
+        "description": "Liveness check for container orchestration.",
+        "operationId": "liveness_probe_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/governance": {
+      "get": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Governance & Artifact Hashes API",
+        "description": "Read-only governance state, shadow mode toggle status, release manifest hash, and artifact integrity checksums.",
+        "operationId": "get_governance_state_risk_governance_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GovernanceStateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/queue": {
+      "get": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Ranked Risk Queue API",
+        "description": "Retrieve ranked risk cases with filtering, pagination, search, and deterministic priority ordering.",
+        "operationId": "get_risk_queue_risk_queue_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Severity"
+            }
+          },
+          {
+            "name": "pattern",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pattern"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Action"
+            }
+          },
+          {
+            "name": "approval_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Approval Status"
+            }
+          },
+          {
+            "name": "confidence_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Confidence Min"
+            }
+          },
+          {
+            "name": "confidence_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Confidence Max"
+            }
+          },
+          {
+            "name": "amount_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Min"
+            }
+          },
+          {
+            "name": "amount_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Max"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskQueueResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases": {
+      "get": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Case List API",
+        "description": "Retrieve filtered list of risk cases.",
+        "operationId": "list_cases_risk_cases_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Severity"
+            }
+          },
+          {
+            "name": "pattern",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pattern"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Action"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskQueueResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/verification": {
+      "get": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Evidence Verification API",
+        "description": "Out-of-fold invariant and evidence grounding check (non-LLM deterministic verifier).",
+        "operationId": "get_case_verification_risk_cases__case_id__verification_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationResultResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/decision": {
+      "get": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Decision Score & Rationale API",
+        "description": "Counterfactual score breakdown, risk tiering, and counterfactual explanations.",
+        "operationId": "get_case_decision_risk_cases__case_id__decision_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionResultResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/action-preview": {
+      "get": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Action Preview API",
+        "description": "Preview friction cost, estimated review cost, and blast radius without executing.",
+        "operationId": "preview_case_action_risk_cases__case_id__action_preview_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionPreviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/approve": {
+      "post": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Approve Case Action API",
+        "description": "Approve proposed action with optimistic locking (expected_version) and idempotency key.",
+        "operationId": "approve_case_action_risk_cases__case_id__approve_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Approve Case Action Risk Cases  Case Id  Approve Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/reject": {
+      "post": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Reject Case Action API",
+        "description": "Reject proposed action, downgrading to ALLOW with audit logging.",
+        "operationId": "reject_case_action_risk_cases__case_id__reject_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Reject Case Action Risk Cases  Case Id  Reject Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/edit": {
+      "post": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Override / Edit Case Action API",
+        "description": "Senior Analyst action override with optimistic locking and idempotency key.",
+        "operationId": "edit_case_action_risk_cases__case_id__edit_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionOverrideCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Edit Case Action Risk Cases  Case Id  Edit Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/simulate": {
+      "post": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Counterfactual Simulation API",
+        "description": "Run counterfactual simulation for case action. Output is explicitly tagged SIMULATED.",
+        "operationId": "simulate_case_action_risk_cases__case_id__simulate_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulationCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationResultResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/outcome": {
+      "get": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Outcome Verification API",
+        "description": "Retrieve execution status, invariant results, and final simulated state.",
+        "operationId": "get_case_outcome_risk_cases__case_id__outcome_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutcomeResultResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/audit": {
+      "get": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Case Audit Trail API",
+        "description": "Retrieve chronological append-only audit events for a specific case.",
+        "operationId": "get_case_audit_trail_risk_cases__case_id__audit_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEventContract"
+                  },
+                  "title": "Response Get Case Audit Trail Risk Cases  Case Id  Audit Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/audit": {
+      "get": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Global Audit Trail API",
+        "description": "Query chronological append-only audit trail with optional filtering.",
+        "operationId": "get_global_audit_trail_risk_audit_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "actor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Actor"
+            }
+          },
+          {
+            "name": "event_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Event Type"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEventContract"
+                  },
+                  "title": "Response Get Global Audit Trail Risk Audit Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/feedback": {
+      "post": {
+        "tags": [
+          "Control Plane Gate"
+        ],
+        "summary": "Analyst Feedback API",
+        "description": "Submit ground-truth analyst adjudication (TRUE_POSITIVE, FALSE_POSITIVE, NEEDS_REVIEW, EVIDENCE_INSUFFICIENT).",
+        "operationId": "submit_case_feedback_risk_cases__case_id__feedback_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalystFeedbackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalystFeedbackResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/overview": {
+      "get": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Get Overview Dashboard",
+        "description": "Return high-level operational KPIs and system posture.",
+        "operationId": "get_overview_dashboard_api_v2_ops_overview_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Overview Dashboard Api V2 Ops Overview Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/queue": {
+      "get": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Get Case Queue",
+        "description": "Retrieve filtered, deterministically sorted analyst risk cases.",
+        "operationId": "get_case_queue_api_v2_ops_queue_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Priority"
+            }
+          },
+          {
+            "name": "pattern",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pattern"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Action"
+            }
+          },
+          {
+            "name": "min_score",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Score"
+            }
+          },
+          {
+            "name": "max_score",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Score"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RiskCaseRecord"
+                  },
+                  "title": "Response Get Case Queue Api V2 Ops Queue Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/cases/{case_id}": {
+      "get": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Get Case Detail",
+        "description": "Retrieve full case details, graph subtopology, evidence artifacts, and decision trace.",
+        "operationId": "get_case_detail_api_v2_ops_cases__case_id__get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Case Detail Api V2 Ops Cases  Case Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/cases/{case_id}/approve": {
+      "post": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Approve Case Action",
+        "description": "Approve proposed case action with RBAC validation and idempotency.",
+        "operationId": "approve_case_action_api_v2_ops_cases__case_id__approve_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskCaseRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/cases/{case_id}/edit": {
+      "post": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Edit Case Action",
+        "description": "Senior Analyst override of recommended intervention.",
+        "operationId": "edit_case_action_api_v2_ops_cases__case_id__edit_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskCaseRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/cases/{case_id}/reject": {
+      "post": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Reject Case Action",
+        "description": "Reject proposed intervention, falling back to ALLOW with audit log.",
+        "operationId": "reject_case_action_api_v2_ops_cases__case_id__reject_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskCaseRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/cases/{case_id}/simulate": {
+      "post": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Simulate Case Execution",
+        "description": "Execute counterfactual simulation on a case.",
+        "operationId": "simulate_case_execution_api_v2_ops_cases__case_id__simulate_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulationExecutionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Simulate Case Execution Api V2 Ops Cases  Case Id  Simulate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/feedback": {
+      "post": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Submit Feedback",
+        "description": "Record analyst domain adjudication without modifying frozen model weights.",
+        "operationId": "submit_feedback_api_v2_ops_feedback_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitFeedbackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "List Feedback",
+        "description": "List historical analyst feedback records.",
+        "operationId": "list_feedback_api_v2_ops_feedback_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FeedbackRecord"
+                  },
+                  "title": "Response List Feedback Api V2 Ops Feedback Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/audit": {
+      "get": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Get Audit Trail",
+        "description": "Retrieve immutable chronological audit records.",
+        "operationId": "get_audit_trail_api_v2_ops_audit_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditRecord"
+                  },
+                  "title": "Response Get Audit Trail Api V2 Ops Audit Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/monitoring": {
+      "get": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Get Monitoring Metrics",
+        "description": "Retrieve operational latency, error rate, throughput, and action histogram.",
+        "operationId": "get_monitoring_metrics_api_v2_ops_monitoring_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationalMetricsSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/drift": {
+      "get": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Get Drift Report",
+        "description": "Evaluate distribution drift against frozen held-out baseline.",
+        "operationId": "get_drift_report_api_v2_ops_drift_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemDriftSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/controls": {
+      "get": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Get System Controls",
+        "description": "Retrieve current operational status, shadow mode, and kill switch settings.",
+        "operationId": "get_system_controls_api_v2_ops_controls_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemControlsState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Update System Controls",
+        "description": "Update global system controls (Admin only).",
+        "operationId": "update_system_controls_api_v2_ops_controls_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateControlsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemControlsState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/manifest": {
+      "get": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Get Cryptographic Manifest",
+        "description": "Retrieve immutable cryptographic hashes, release lock, and test count.",
+        "operationId": "get_cryptographic_manifest_api_v2_ops_manifest_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Cryptographic Manifest Api V2 Ops Manifest Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ops/evaluation": {
+      "get": {
+        "tags": [
+          "Operations & Governance"
+        ],
+        "summary": "Get Evaluation Details",
+        "description": "Retrieve full held-out evaluation metrics directly from reports/RISKORBIT_FINAL_METRICS.json.\nSingle Source of Truth for frontend without any hardcoded values.",
+        "operationId": "get_evaluation_details_api_v2_ops_evaluation_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "analyst_01",
+              "title": "X-User-Id"
+            }
+          },
+          {
+            "name": "x-user-role",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "ANALYST",
+              "title": "X-User-Role"
+            }
+          },
+          {
+            "name": "x-user-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Risk Analyst",
+              "title": "X-User-Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Evaluation Details Api V2 Ops Evaluation Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "description": "Health check endpoint.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/score": {
+      "post": {
+        "summary": "Score Transaction",
+        "description": "Score a transaction for coordinated refund abuse risk (Phase 1 baseline).",
+        "operationId": "score_transaction_risk_score_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScoreRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScoreResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/investigate": {
+      "post": {
+        "summary": "Investigate Candidate",
+        "description": "Phase 2: Trigger bounded relationship investigation around a candidate.\n\nInput: candidate_id (customer_id or transaction_id), optional as_of_timestamp, max_hops\nOutput: Structured investigation case with evidence, ring, timeline, and grounded narrative.\n\nThis is READ-ONLY. No accounts are blocked or modified.",
+        "operationId": "investigate_candidate_risk_investigate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseInvestigationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseInvestigationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}": {
+      "get": {
+        "summary": "Get Case",
+        "description": "Retrieve a stored investigation case by case_id.",
+        "operationId": "get_case_risk_cases__case_id__get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseInvestigationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/graph": {
+      "get": {
+        "summary": "Get Case Graph",
+        "description": "Return graph statistics for an investigation case.",
+        "operationId": "get_case_graph_risk_cases__case_id__graph_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Case Graph Risk Cases  Case Id  Graph Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/cases/{case_id}/evidence": {
+      "get": {
+        "summary": "Get Case Evidence",
+        "description": "Return the grounded evidence bundle for an investigation case.",
+        "operationId": "get_case_evidence_risk_cases__case_id__evidence_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Case Evidence Risk Cases  Case Id  Evidence Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/risk/evaluation": {
+      "get": {
+        "summary": "Get Root Evaluation Metrics",
+        "description": "Single Source of Truth: Canonical evaluation metrics from reports/RISKORBIT_FINAL_METRICS.json.",
+        "operationId": "get_root_evaluation_metrics_risk_evaluation_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Root Evaluation Metrics Risk Evaluation Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActionOverrideCommandRequest": {
+        "properties": {
+          "actor": {
+            "type": "string",
+            "title": "Actor",
+            "example": "senior_analyst_01"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "default": "SENIOR_ANALYST",
+            "example": "SENIOR_ANALYST"
+          },
+          "new_action": {
+            "type": "string",
+            "title": "New Action",
+            "example": "STEP_UP_2FA"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "example": "Lower blast radius recommendation"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version",
+            "example": 1
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key",
+            "example": "key-edit-1001"
+          }
+        },
+        "type": "object",
+        "required": [
+          "actor",
+          "new_action",
+          "reason"
+        ],
+        "title": "ActionOverrideCommandRequest"
+      },
+      "ActionPreviewResponse": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence Ids"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version",
+            "default": "v3.2.0-frozen"
+          },
+          "friction_cost": {
+            "type": "number",
+            "title": "Friction Cost"
+          },
+          "estimated_review_cost": {
+            "type": "number",
+            "title": "Estimated Review Cost"
+          },
+          "approval_required": {
+            "type": "boolean",
+            "title": "Approval Required"
+          },
+          "expiration": {
+            "type": "string",
+            "title": "Expiration"
+          },
+          "blast_radius": {
+            "type": "string",
+            "title": "Blast Radius"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "action",
+          "target",
+          "scope",
+          "rationale",
+          "evidence_ids",
+          "friction_cost",
+          "estimated_review_cost",
+          "approval_required",
+          "expiration",
+          "blast_radius"
+        ],
+        "title": "ActionPreviewResponse"
+      },
+      "AdjudicationOutcome": {
+        "type": "string",
+        "enum": [
+          "TRUE_POSITIVE",
+          "FALSE_POSITIVE",
+          "NEEDS_REVIEW",
+          "EVIDENCE_INSUFFICIENT"
+        ],
+        "title": "AdjudicationOutcome",
+        "description": "Analyst adjudication classifications."
+      },
+      "AnalystFeedbackRequest": {
+        "properties": {
+          "analyst": {
+            "type": "string",
+            "title": "Analyst",
+            "example": "analyst_01"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "default": "ANALYST",
+            "example": "ANALYST"
+          },
+          "adjudication": {
+            "type": "string",
+            "title": "Adjudication",
+            "example": "TRUE_POSITIVE"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "example": "Ground truth verified collusive ring"
+          },
+          "evidence_conflict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Conflict"
+          },
+          "suggested_policy_tuning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Policy Tuning"
+          }
+        },
+        "type": "object",
+        "required": [
+          "analyst",
+          "adjudication",
+          "reason"
+        ],
+        "title": "AnalystFeedbackRequest"
+      },
+      "AnalystFeedbackResponse": {
+        "properties": {
+          "feedback_id": {
+            "type": "string",
+            "title": "Feedback Id"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "adjudication": {
+            "type": "string",
+            "title": "Adjudication"
+          },
+          "analyst": {
+            "type": "string",
+            "title": "Analyst"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "feedback_id",
+          "case_id",
+          "transaction_id",
+          "adjudication",
+          "analyst",
+          "role",
+          "reason",
+          "timestamp"
+        ],
+        "title": "AnalystFeedbackResponse"
+      },
+      "ApprovalCommandRequest": {
+        "properties": {
+          "actor": {
+            "type": "string",
+            "title": "Actor",
+            "example": "analyst_01"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "default": "ANALYST",
+            "example": "ANALYST"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "example": "Verified device cluster match"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version",
+            "example": 1
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key",
+            "example": "key-approve-1001"
+          }
+        },
+        "type": "object",
+        "required": [
+          "actor",
+          "reason"
+        ],
+        "title": "ApprovalCommandRequest"
+      },
+      "ApproveActionRequest": {
+        "properties": {
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          }
+        },
+        "type": "object",
+        "title": "ApproveActionRequest"
+      },
+      "AuditEventContract": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "actor_id": {
+            "type": "string",
+            "title": "Actor Id"
+          },
+          "actor_role": {
+            "type": "string",
+            "title": "Actor Role"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "previous_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous State"
+          },
+          "new_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New State"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version",
+            "default": "riskorbit-risk-v1"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version",
+            "default": "v3.2.0-frozen"
+          },
+          "evidence_version": {
+            "type": "string",
+            "title": "Evidence Version",
+            "default": "evidence-grounded-v2"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "case_id",
+          "actor_id",
+          "actor_role",
+          "event_type",
+          "timestamp"
+        ],
+        "title": "AuditEventContract"
+      },
+      "AuditEventType": {
+        "type": "string",
+        "enum": [
+          "CASE_CREATED",
+          "INVESTIGATION_STARTED",
+          "EVIDENCE_VERIFIED",
+          "ACTION_RECOMMENDED",
+          "APPROVAL_REQUESTED",
+          "ACTION_EDITED",
+          "ACTION_APPROVED",
+          "ACTION_REJECTED",
+          "SIMULATION_EXECUTED",
+          "OUTCOME_VERIFIED",
+          "FEEDBACK_RECORDED",
+          "SYSTEM_MODE_CHANGED"
+        ],
+        "title": "AuditEventType",
+        "description": "Lifecycle audit event categories."
+      },
+      "AuditRecord": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "actor_id": {
+            "type": "string",
+            "title": "Actor Id"
+          },
+          "actor_role": {
+            "type": "string",
+            "title": "Actor Role"
+          },
+          "event_type": {
+            "$ref": "#/components/schemas/AuditEventType"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version",
+            "default": "riskorbit-risk-v1"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version",
+            "default": "phase3_final_policy"
+          },
+          "evidence_version": {
+            "type": "string",
+            "title": "Evidence Version",
+            "default": "evidence-grounded-v2"
+          },
+          "previous_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous State"
+          },
+          "new_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New State"
+          },
+          "details": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "actor_id",
+          "actor_role",
+          "event_type"
+        ],
+        "title": "AuditRecord",
+        "description": "Immutable audit record schema."
+      },
+      "CaseAuditTrail": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "candidate_id": {
+            "type": "string",
+            "title": "Candidate Id"
+          },
+          "scoring_timestamp": {
+            "type": "string",
+            "title": "Scoring Timestamp"
+          },
+          "phase1_model_version": {
+            "type": "string",
+            "title": "Phase1 Model Version",
+            "default": "riskorbit-risk-v1"
+          },
+          "graph_version": {
+            "type": "string",
+            "title": "Graph Version",
+            "default": "graph-v2"
+          },
+          "investigation_version": {
+            "type": "string",
+            "title": "Investigation Version",
+            "default": "investigation-v2"
+          },
+          "evidence_version": {
+            "type": "string",
+            "title": "Evidence Version",
+            "default": "evidence-grounded-v2"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "candidate_id",
+          "scoring_timestamp",
+          "created_at"
+        ],
+        "title": "CaseAuditTrail"
+      },
+      "CaseInvestigationRequest": {
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "title": "Candidate Id",
+            "description": "Customer ID or Transaction ID to investigate"
+          },
+          "as_of_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Timestamp",
+            "description": "ISO timestamp for point-in-time scoring"
+          },
+          "max_hops": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Max Hops",
+            "default": 2
+          }
+        },
+        "type": "object",
+        "required": [
+          "candidate_id"
+        ],
+        "title": "CaseInvestigationRequest"
+      },
+      "CaseInvestigationResponse": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "root_entity": {
+            "type": "string",
+            "title": "Root Entity"
+          },
+          "candidate_ring_type": {
+            "type": "string",
+            "title": "Candidate Ring Type",
+            "default": "coordinated_refund_abuse"
+          },
+          "individual_risk_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Individual Risk Score"
+          },
+          "relationship_risk_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Relationship Risk Score"
+          },
+          "combined_risk_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Combined Risk Score"
+          },
+          "risk_tier": {
+            "type": "string",
+            "title": "Risk Tier",
+            "description": "low | medium | high | critical"
+          },
+          "is_candidate_ring": {
+            "type": "boolean",
+            "title": "Is Candidate Ring"
+          },
+          "member_accounts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Member Accounts"
+          },
+          "shared_devices": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Shared Devices"
+          },
+          "shared_ips": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Shared Ips"
+          },
+          "targeted_merchants": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Targeted Merchants"
+          },
+          "evidence_records": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceRecord"
+            },
+            "type": "array",
+            "title": "Evidence Records"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineEvent"
+            },
+            "type": "array",
+            "title": "Timeline"
+          },
+          "case_summary": {
+            "type": "string",
+            "title": "Case Summary"
+          },
+          "why_flagged": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Why Flagged"
+          },
+          "uncertainties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Uncertainties"
+          },
+          "missing_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Evidence"
+          },
+          "graph_statistics": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Graph Statistics"
+          },
+          "audit_trail": {
+            "$ref": "#/components/schemas/CaseAuditTrail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "root_entity",
+          "individual_risk_score",
+          "relationship_risk_score",
+          "combined_risk_score",
+          "risk_tier",
+          "is_candidate_ring",
+          "case_summary",
+          "audit_trail"
+        ],
+        "title": "CaseInvestigationResponse"
+      },
+      "CasePriority": {
+        "type": "string",
+        "enum": [
+          "CRITICAL",
+          "HIGH",
+          "MEDIUM",
+          "LOW"
+        ],
+        "title": "CasePriority",
+        "description": "Deterministic priority levels."
+      },
+      "CaseStatus": {
+        "type": "string",
+        "enum": [
+          "RECOMMENDED",
+          "PENDING_APPROVAL",
+          "APPROVED",
+          "EDITED",
+          "REJECTED",
+          "EXECUTED_SIMULATION",
+          "VERIFIED"
+        ],
+        "title": "CaseStatus",
+        "description": "Case workflow status."
+      },
+      "ComponentHealthDetail": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ComponentHealthState"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ComponentHealthDetail"
+      },
+      "ComponentHealthState": {
+        "type": "string",
+        "enum": [
+          "HEALTHY",
+          "DEGRADED",
+          "OFFLINE"
+        ],
+        "title": "ComponentHealthState"
+      },
+      "DecisionResultResponse": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "transaction_risk": {
+            "type": "number",
+            "title": "Transaction Risk"
+          },
+          "membership_confidence": {
+            "type": "number",
+            "title": "Membership Confidence"
+          },
+          "evidence_strength": {
+            "type": "number",
+            "title": "Evidence Strength"
+          },
+          "relationship_strength": {
+            "type": "number",
+            "title": "Relationship Strength"
+          },
+          "temporal_relevance": {
+            "type": "number",
+            "title": "Temporal Relevance"
+          },
+          "decision_score": {
+            "type": "number",
+            "title": "Decision Score"
+          },
+          "risk_tier": {
+            "type": "string",
+            "title": "Risk Tier"
+          },
+          "recommended_action": {
+            "type": "string",
+            "title": "Recommended Action"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "why_not_stronger": {
+            "type": "string",
+            "title": "Why Not Stronger"
+          },
+          "why_not_weaker": {
+            "type": "string",
+            "title": "Why Not Weaker"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version",
+            "default": "v3.2.0-frozen"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "transaction_risk",
+          "membership_confidence",
+          "evidence_strength",
+          "relationship_strength",
+          "temporal_relevance",
+          "decision_score",
+          "risk_tier",
+          "recommended_action",
+          "reason",
+          "why_not_stronger",
+          "why_not_weaker"
+        ],
+        "title": "DecisionResultResponse"
+      },
+      "DemoUserRecord": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department"
+          },
+          "password_hint": {
+            "type": "string",
+            "title": "Password Hint"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Capabilities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "role",
+          "name",
+          "email",
+          "title",
+          "department",
+          "password_hint",
+          "capabilities"
+        ],
+        "title": "DemoUserRecord",
+        "description": "Pre-configured demo identity with metadata."
+      },
+      "DriftStatus": {
+        "type": "string",
+        "enum": [
+          "NO_DRIFT",
+          "MODERATE_DRIFT",
+          "SIGNIFICANT_DRIFT"
+        ],
+        "title": "DriftStatus",
+        "description": "PSI-based distribution drift alert severity."
+      },
+      "EditActionRequest": {
+        "properties": {
+          "new_action": {
+            "type": "string",
+            "title": "New Action"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "new_action",
+          "reason"
+        ],
+        "title": "EditActionRequest"
+      },
+      "EvidenceCategory": {
+        "type": "string",
+        "enum": [
+          "DEVICE_SHARING",
+          "NETWORK_SHARING",
+          "INSTRUMENT_LINK",
+          "REFUND_COORDINATION",
+          "CROSS_MERCHANT",
+          "TEMPORAL_BURST",
+          "BENIGN_CONFUSER"
+        ],
+        "title": "EvidenceCategory"
+      },
+      "EvidenceConfidence": {
+        "type": "string",
+        "enum": [
+          "STRONG",
+          "MODERATE",
+          "WEAK"
+        ],
+        "title": "EvidenceConfidence"
+      },
+      "EvidenceRecord": {
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "title": "Evidence Id",
+            "description": "Unique evidence ID e.g. EVID-0001"
+          },
+          "category": {
+            "$ref": "#/components/schemas/EvidenceCategory"
+          },
+          "confidence": {
+            "$ref": "#/components/schemas/EvidenceConfidence"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement",
+            "description": "Factual evidence claim directly derived from data"
+          },
+          "supporting_entity_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Supporting Entity Ids"
+          },
+          "supporting_event_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Supporting Event Ids"
+          },
+          "metric_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Value"
+          },
+          "metric_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "evidence_id",
+          "category",
+          "confidence",
+          "statement"
+        ],
+        "title": "EvidenceRecord"
+      },
+      "FeatureDriftReport": {
+        "properties": {
+          "feature_name": {
+            "type": "string",
+            "title": "Feature Name"
+          },
+          "psi_score": {
+            "type": "number",
+            "title": "Psi Score"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DriftStatus"
+          },
+          "baseline_mean": {
+            "type": "number",
+            "title": "Baseline Mean"
+          },
+          "current_mean": {
+            "type": "number",
+            "title": "Current Mean"
+          },
+          "baseline_std": {
+            "type": "number",
+            "title": "Baseline Std"
+          },
+          "current_std": {
+            "type": "number",
+            "title": "Current Std"
+          },
+          "drift_direction": {
+            "type": "string",
+            "title": "Drift Direction"
+          },
+          "bins_summary": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Bins Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "feature_name",
+          "psi_score",
+          "status",
+          "baseline_mean",
+          "current_mean",
+          "baseline_std",
+          "current_std",
+          "drift_direction"
+        ],
+        "title": "FeatureDriftReport",
+        "description": "Drift evaluation for a single feature or metric."
+      },
+      "FeedbackRecord": {
+        "properties": {
+          "feedback_id": {
+            "type": "string",
+            "title": "Feedback Id"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "adjudication": {
+            "$ref": "#/components/schemas/AdjudicationOutcome"
+          },
+          "actor_id": {
+            "type": "string",
+            "title": "Actor Id"
+          },
+          "actor_role": {
+            "type": "string",
+            "title": "Actor Role"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "evidence_conflict_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Conflict Notes"
+          },
+          "suggested_policy_tuning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Policy Tuning"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version",
+            "default": "riskorbit-risk-v1"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version",
+            "default": "phase3_final_policy"
+          },
+          "status_notice": {
+            "type": "string",
+            "title": "Status Notice",
+            "default": "Feedback captured \u2014 model remains frozen."
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "transaction_id",
+          "adjudication",
+          "actor_id",
+          "actor_role"
+        ],
+        "title": "FeedbackRecord",
+        "description": "Structured analyst adjudication record."
+      },
+      "GovernanceStateResponse": {
+        "properties": {
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "default": "Local / Replay Benchmark"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version",
+            "default": "riskorbit-risk-v1"
+          },
+          "graph_version": {
+            "type": "string",
+            "title": "Graph Version",
+            "default": "graph-v2"
+          },
+          "evidence_version": {
+            "type": "string",
+            "title": "Evidence Version",
+            "default": "evidence-grounded-v2"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version",
+            "default": "v3.2.0-frozen"
+          },
+          "shadow_mode": {
+            "type": "boolean",
+            "title": "Shadow Mode",
+            "default": false
+          },
+          "safe_mode": {
+            "type": "boolean",
+            "title": "Safe Mode",
+            "default": false
+          },
+          "action_pause": {
+            "type": "boolean",
+            "title": "Action Pause",
+            "default": false
+          },
+          "release_manifest_hash": {
+            "type": "string",
+            "title": "Release Manifest Hash"
+          },
+          "artifact_hashes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Artifact Hashes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "release_manifest_hash",
+          "artifact_hashes"
+        ],
+        "title": "GovernanceStateResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "model_version",
+          "threshold"
+        ],
+        "title": "HealthResponse"
+      },
+      "LatencyQuantiles": {
+        "properties": {
+          "p50_ms": {
+            "type": "number",
+            "title": "P50 Ms",
+            "default": 0.0
+          },
+          "p95_ms": {
+            "type": "number",
+            "title": "P95 Ms",
+            "default": 0.0
+          },
+          "p99_ms": {
+            "type": "number",
+            "title": "P99 Ms",
+            "default": 0.0
+          },
+          "mean_ms": {
+            "type": "number",
+            "title": "Mean Ms",
+            "default": 0.0
+          },
+          "min_ms": {
+            "type": "number",
+            "title": "Min Ms",
+            "default": 0.0
+          },
+          "max_ms": {
+            "type": "number",
+            "title": "Max Ms",
+            "default": 0.0
+          },
+          "sample_count": {
+            "type": "integer",
+            "title": "Sample Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "LatencyQuantiles",
+        "description": "Latency distribution summary in milliseconds."
+      },
+      "LoginRequest": {
+        "properties": {
+          "username_or_email": {
+            "type": "string",
+            "title": "Username Or Email"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserRole"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "remember_me": {
+            "type": "boolean",
+            "title": "Remember Me",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "username_or_email"
+        ],
+        "title": "LoginRequest"
+      },
+      "LoginResponse": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "Bearer"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserContext"
+          },
+          "expires_at": {
+            "type": "number",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "session_id",
+          "user",
+          "expires_at"
+        ],
+        "title": "LoginResponse"
+      },
+      "LogoutResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "SUCCESS"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "Session successfully terminated."
+          }
+        },
+        "type": "object",
+        "title": "LogoutResponse"
+      },
+      "OperationalMetricsSummary": {
+        "properties": {
+          "total_requests": {
+            "type": "integer",
+            "title": "Total Requests",
+            "default": 0
+          },
+          "total_investigations": {
+            "type": "integer",
+            "title": "Total Investigations",
+            "default": 0
+          },
+          "total_interventions": {
+            "type": "integer",
+            "title": "Total Interventions",
+            "default": 0
+          },
+          "error_count": {
+            "type": "integer",
+            "title": "Error Count",
+            "default": 0
+          },
+          "error_rate_pct": {
+            "type": "number",
+            "title": "Error Rate Pct",
+            "default": 0.0
+          },
+          "uptime_seconds": {
+            "type": "number",
+            "title": "Uptime Seconds",
+            "default": 0.0
+          },
+          "requests_per_sec": {
+            "type": "number",
+            "title": "Requests Per Sec",
+            "default": 0.0
+          },
+          "latency": {
+            "$ref": "#/components/schemas/LatencyQuantiles"
+          },
+          "action_distribution": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Action Distribution"
+          },
+          "tier_distribution": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Tier Distribution"
+          },
+          "priority_distribution": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Priority Distribution"
+          },
+          "recent_activity_timeline": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Recent Activity Timeline"
+          }
+        },
+        "type": "object",
+        "title": "OperationalMetricsSummary",
+        "description": "Aggregated operational metrics."
+      },
+      "OutcomeResultResponse": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "execution_status": {
+            "type": "string",
+            "title": "Execution Status"
+          },
+          "verification_status": {
+            "type": "string",
+            "title": "Verification Status"
+          },
+          "invariant_results": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Invariant Results"
+          },
+          "final_simulated_state": {
+            "type": "string",
+            "title": "Final Simulated State"
+          },
+          "cost": {
+            "type": "number",
+            "title": "Cost"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "execution_status",
+          "verification_status",
+          "invariant_results",
+          "final_simulated_state",
+          "cost",
+          "timestamp"
+        ],
+        "title": "OutcomeResultResponse"
+      },
+      "RejectActionRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "RejectActionRequest"
+      },
+      "RiskCaseRecord": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "amount_inr": {
+            "type": "number",
+            "title": "Amount Inr"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "phase1_risk": {
+            "type": "number",
+            "title": "Phase1 Risk"
+          },
+          "membership_confidence": {
+            "type": "number",
+            "title": "Membership Confidence"
+          },
+          "evidence_strength": {
+            "type": "number",
+            "title": "Evidence Strength"
+          },
+          "decision_score": {
+            "type": "number",
+            "title": "Decision Score"
+          },
+          "tier": {
+            "type": "string",
+            "title": "Tier"
+          },
+          "recommended_action": {
+            "type": "string",
+            "title": "Recommended Action"
+          },
+          "final_action": {
+            "type": "string",
+            "title": "Final Action"
+          },
+          "requires_human_approval": {
+            "type": "boolean",
+            "title": "Requires Human Approval"
+          },
+          "escalation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Escalation Reason"
+          },
+          "action_reason": {
+            "type": "string",
+            "title": "Action Reason"
+          },
+          "expected_friction_cost_inr": {
+            "type": "number",
+            "title": "Expected Friction Cost Inr",
+            "default": 0.0
+          },
+          "ring_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ring Id"
+          },
+          "pattern_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pattern Type"
+          },
+          "is_hard_negative": {
+            "type": "boolean",
+            "title": "Is Hard Negative",
+            "default": false
+          },
+          "hard_negative_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hard Negative Type"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CaseStatus",
+            "default": "RECOMMENDED"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/CasePriority",
+            "default": "MEDIUM"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "idempotency_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Idempotency Keys"
+          },
+          "assigned_reviewer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Reviewer"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "reviewer_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Notes"
+          },
+          "original_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Action"
+          },
+          "member_count": {
+            "type": "integer",
+            "title": "Member Count",
+            "default": 1
+          },
+          "shared_devices": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Shared Devices"
+          },
+          "shared_ips": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Shared Ips"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "transaction_id",
+          "customer_id",
+          "amount_inr",
+          "timestamp",
+          "phase1_risk",
+          "membership_confidence",
+          "evidence_strength",
+          "decision_score",
+          "tier",
+          "recommended_action",
+          "final_action",
+          "requires_human_approval",
+          "action_reason"
+        ],
+        "title": "RiskCaseRecord",
+        "description": "Comprehensive risk case representation."
+      },
+      "RiskQueueItemResponse": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          },
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "merchant_id": {
+            "type": "string",
+            "title": "Merchant Id"
+          },
+          "ring_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ring Id"
+          },
+          "pattern": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pattern"
+          },
+          "transaction_risk": {
+            "type": "number",
+            "title": "Transaction Risk"
+          },
+          "membership_confidence": {
+            "type": "number",
+            "title": "Membership Confidence"
+          },
+          "evidence_strength": {
+            "type": "number",
+            "title": "Evidence Strength"
+          },
+          "recommended_action": {
+            "type": "string",
+            "title": "Recommended Action"
+          },
+          "amount": {
+            "type": "number",
+            "title": "Amount"
+          },
+          "exposure": {
+            "type": "number",
+            "title": "Exposure"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "priority",
+          "transaction_id",
+          "customer_id",
+          "merchant_id",
+          "transaction_risk",
+          "membership_confidence",
+          "evidence_strength",
+          "recommended_action",
+          "amount",
+          "exposure",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RiskQueueItemResponse"
+      },
+      "RiskQueueResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RiskQueueItemResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total_count": {
+            "type": "integer",
+            "title": "Total Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total_count",
+          "page",
+          "page_size"
+        ],
+        "title": "RiskQueueResponse"
+      },
+      "ScoreRequest": {
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id",
+            "description": "Synthetic customer identifier"
+          },
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id",
+            "description": "Transaction to score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "customer_id",
+          "transaction_id"
+        ],
+        "title": "ScoreRequest",
+        "description": "Input to POST /risk/score"
+      },
+      "ScoreResponse": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "risk_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Risk Score"
+          },
+          "risk_label": {
+            "type": "string",
+            "title": "Risk Label",
+            "description": "low | medium | high"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "top_signals": {
+            "items": {
+              "$ref": "#/components/schemas/SignalDetail"
+            },
+            "type": "array",
+            "title": "Top Signals"
+          },
+          "scored_at": {
+            "type": "string",
+            "title": "Scored At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "customer_id",
+          "risk_score",
+          "risk_label",
+          "threshold",
+          "model_version",
+          "scored_at"
+        ],
+        "title": "ScoreResponse"
+      },
+      "SessionValidateResponse": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserContext"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "valid",
+          "user"
+        ],
+        "title": "SessionValidateResponse"
+      },
+      "SignalDetail": {
+        "properties": {
+          "feature": {
+            "type": "string",
+            "title": "Feature",
+            "description": "Feature name from the canonical feature list"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value",
+            "description": "Feature value for this transaction"
+          },
+          "importance": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Importance",
+            "description": "Normalized SHAP importance (0-1) for this feature"
+          }
+        },
+        "type": "object",
+        "required": [
+          "feature",
+          "value",
+          "importance"
+        ],
+        "title": "SignalDetail",
+        "description": "One contributing signal in the risk explanation."
+      },
+      "SimulationCommandRequest": {
+        "properties": {
+          "policy_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Version",
+            "default": "v3.2.0-frozen"
+          },
+          "optional_action_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Optional Action Override"
+          },
+          "simulation_parameters": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Simulation Parameters"
+          }
+        },
+        "type": "object",
+        "title": "SimulationCommandRequest"
+      },
+      "SimulationExecutionRequest": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "simulated_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Simulated Action"
+          },
+          "override_policy_parameters": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override Policy Parameters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id"
+        ],
+        "title": "SimulationExecutionRequest"
+      },
+      "SimulationResultResponse": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "predicted_action": {
+            "type": "string",
+            "title": "Predicted Action"
+          },
+          "estimated_protected_loss": {
+            "type": "number",
+            "title": "Estimated Protected Loss"
+          },
+          "estimated_friction": {
+            "type": "number",
+            "title": "Estimated Friction"
+          },
+          "estimated_review_cost": {
+            "type": "number",
+            "title": "Estimated Review Cost"
+          },
+          "net_utility": {
+            "type": "number",
+            "title": "Net Utility"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "simulation_version": {
+            "type": "string",
+            "title": "Simulation Version",
+            "default": "sim-v2"
+          },
+          "status_tag": {
+            "type": "string",
+            "title": "Status Tag",
+            "default": "SIMULATED"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "predicted_action",
+          "estimated_protected_loss",
+          "estimated_friction",
+          "estimated_review_cost",
+          "net_utility",
+          "assumptions",
+          "confidence"
+        ],
+        "title": "SimulationResultResponse"
+      },
+      "SubmitFeedbackRequest": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "adjudication": {
+            "$ref": "#/components/schemas/AdjudicationOutcome"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "evidence_conflict_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Conflict Notes"
+          },
+          "suggested_policy_tuning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Policy Tuning"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "transaction_id",
+          "adjudication"
+        ],
+        "title": "SubmitFeedbackRequest"
+      },
+      "SystemControlsState": {
+        "properties": {
+          "health_status": {
+            "$ref": "#/components/schemas/SystemHealthStatus",
+            "default": "HEALTHY"
+          },
+          "shadow_mode_enabled": {
+            "type": "boolean",
+            "title": "Shadow Mode Enabled",
+            "description": "When True: Proposes actions and scores without executing interventions.",
+            "default": false
+          },
+          "kill_switch_active": {
+            "type": "boolean",
+            "title": "Kill Switch Active",
+            "description": "When True: Automated actions paused; all interventions mandate human approval.",
+            "default": false
+          },
+          "graph_engine_available": {
+            "type": "boolean",
+            "title": "Graph Engine Available",
+            "description": "Whether graph relationship traversal is currently functional.",
+            "default": true
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version",
+            "default": "riskorbit-risk-v1"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version",
+            "default": "phase3_final_policy"
+          },
+          "active_environment": {
+            "type": "string",
+            "title": "Active Environment",
+            "default": "SYNTHETIC / DEMO"
+          },
+          "last_state_change": {
+            "type": "string",
+            "title": "Last State Change"
+          },
+          "degradation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Degradation Reason"
+          }
+        },
+        "type": "object",
+        "title": "SystemControlsState",
+        "description": "System-level operational controls."
+      },
+      "SystemDriftSummary": {
+        "properties": {
+          "overall_status": {
+            "$ref": "#/components/schemas/DriftStatus"
+          },
+          "max_psi": {
+            "type": "number",
+            "title": "Max Psi"
+          },
+          "evaluated_features_count": {
+            "type": "integer",
+            "title": "Evaluated Features Count"
+          },
+          "drifting_features_count": {
+            "type": "integer",
+            "title": "Drifting Features Count"
+          },
+          "last_evaluated_at": {
+            "type": "string",
+            "title": "Last Evaluated At"
+          },
+          "feature_reports": {
+            "items": {
+              "$ref": "#/components/schemas/FeatureDriftReport"
+            },
+            "type": "array",
+            "title": "Feature Reports"
+          },
+          "recommendation": {
+            "type": "string",
+            "title": "Recommendation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "overall_status",
+          "max_psi",
+          "evaluated_features_count",
+          "drifting_features_count",
+          "last_evaluated_at",
+          "recommendation"
+        ],
+        "title": "SystemDriftSummary",
+        "description": "Aggregate distribution drift status across monitored dimensions."
+      },
+      "SystemHealthResponse": {
+        "properties": {
+          "overall_status": {
+            "$ref": "#/components/schemas/ComponentHealthState"
+          },
+          "components": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ComponentHealthDetail"
+            },
+            "type": "object",
+            "title": "Components"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "overall_status",
+          "components"
+        ],
+        "title": "SystemHealthResponse"
+      },
+      "SystemHealthStatus": {
+        "type": "string",
+        "enum": [
+          "HEALTHY",
+          "DEGRADED",
+          "SAFE_MODE",
+          "UNAVAILABLE"
+        ],
+        "title": "SystemHealthStatus",
+        "description": "System operational readiness status."
+      },
+      "TimelineEvent": {
+        "properties": {
+          "event_timestamp": {
+            "type": "string",
+            "title": "Event Timestamp"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "entity_id": {
+            "type": "string",
+            "title": "Entity Id"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "supporting_event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supporting Event Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_timestamp",
+          "event_type",
+          "entity_id",
+          "description"
+        ],
+        "title": "TimelineEvent"
+      },
+      "UpdateControlsRequest": {
+        "properties": {
+          "shadow_mode": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shadow Mode"
+          },
+          "kill_switch": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kill Switch"
+          },
+          "graph_available": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Graph Available"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "title": "UpdateControlsRequest"
+      },
+      "UserContext": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Capabilities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "role",
+          "name"
+        ],
+        "title": "UserContext",
+        "description": "Authenticated user context."
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "VIEWER",
+          "ANALYST",
+          "SENIOR_ANALYST",
+          "ADMIN"
+        ],
+        "title": "UserRole",
+        "description": "Supported user roles in RiskOrbit operations."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VerificationResultResponse": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "PASSED"
+          },
+          "evidence_sufficient": {
+            "type": "boolean",
+            "title": "Evidence Sufficient",
+            "default": true
+          },
+          "contradiction_count": {
+            "type": "integer",
+            "title": "Contradiction Count",
+            "default": 0
+          },
+          "contradictions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Contradictions"
+          },
+          "provenance_valid": {
+            "type": "boolean",
+            "title": "Provenance Valid",
+            "default": true
+          },
+          "pit_valid": {
+            "type": "boolean",
+            "title": "Pit Valid",
+            "default": true
+          },
+          "policy_constraints_valid": {
+            "type": "boolean",
+            "title": "Policy Constraints Valid",
+            "default": true
+          },
+          "safety_constraints_valid": {
+            "type": "boolean",
+            "title": "Safety Constraints Valid",
+            "default": true
+          },
+          "verifier_version": {
+            "type": "string",
+            "title": "Verifier Version",
+            "default": "verifier-v2"
+          },
+          "verified_at": {
+            "type": "string",
+            "title": "Verified At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id"
+        ],
+        "title": "VerificationResultResponse"
+      }
+    }
+  }
+}

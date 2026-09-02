@@ -1,0 +1,6 @@
+model,description,precision,recall,f1,prauc,fpr,tp,fp,fn,tn,fp_cost,n_features,threshold,pat_a,pat_b,pat_c
+A,Phase 1 Frozen Baseline,0.3517,0.2862,0.3156,0.0969,0.0054,83,153,207,28148,19890,36,0.35,0.0069,0.0455,0.7843
+B,Phase 1 + Simple Graph Aggregates,0.5355,0.2862,0.373,0.153,0.0025,83,72,207,28229,9360,39,0.46,0.0,0.0,0.8137
+C,Phase 1 + Full Graph Features,0.5425,0.2862,0.3747,0.1529,0.0025,83,70,207,28231,9100,46,0.46,0.0,0.0,0.8137
+D,Phase 1 + ring_risk_score Only,0.4301,0.2862,0.3437,0.1221,0.0039,83,110,207,28191,14300,37,0.44,0.0,0.0,0.8137
+E,Phase 2 Full (riskorbit-risk-v2),0.3812,0.2379,0.293,0.114,0.004,69,112,221,28189,14560,46,0.32,0.0,0.0227,0.6667

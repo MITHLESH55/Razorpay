@@ -1,0 +1,468 @@
+{
+  "manifest_version": "1.0.0",
+  "generated_at": "2026-08-31T08:12:38.953143+00:00",
+  "status": "VALIDATION_COMPLETE_PRE_HOLDOUT_FROZEN",
+  "heldout_test_status": "LOCKED_UNTOUCHED",
+  "datasets": {
+    "validation_csv": {
+      "path": "data\\splits\\validation.csv",
+      "sha256": "a521d2540737028b342de89dcd576bc6599ea332543555b3e1bd9d379db14600",
+      "row_count": 28581,
+      "abuse_count": 281,
+      "total_volume_inr": 29689843.979999997
+    },
+    "validation_features_csv": {
+      "path": "data\\processed\\val_features.csv",
+      "sha256": "585206586c03ba946bbd342297b9d21b96cbf8515943c323483373f350b61102",
+      "row_count": 28581,
+      "feature_count": 36
+    },
+    "heldout_test_csv": {
+      "path": "data\\splits\\heldout_test.csv",
+      "sha256": "f0fe47be1191db1bbb62ab61f1747b952926d2fd2cc2adc72c3835a173dd164c",
+      "row_count": 28591,
+      "status": "ISOLATED_ZERO_INSPECTION"
+    }
+  },
+  "frozen_artifacts": {
+    "phase1_model_pkl": {
+      "path": "artifacts\\riskorbit-risk-v1\\model.pkl",
+      "sha256": "b190d5c276dd70b81b3bb8ead3f5b5c99a6709ab9d7b42857b5c13a9f8f59a80"
+    },
+    "phase1_threshold_json": {
+      "path": "artifacts\\riskorbit-risk-v1\\threshold.json",
+      "sha256": "093057ad55bab6e7d1930aca6bdf1e8afd94c8aafe82830b2731630209e82c7e",
+      "threshold_value": 0.35
+    },
+    "phase1_feature_schema_json": {
+      "path": "artifacts\\riskorbit-risk-v1\\feature_schema.json",
+      "sha256": "85317a632ac44bc339fbc4c1ddff90267aa0797943067a9782c07e21ed7da469",
+      "feature_count": 36
+    },
+    "phase3_final_policy_json": {
+      "path": "configs\\phase3_final_policy.json",
+      "sha256": "aee84c387f4309d3e940dc62a7debd157ba41a6dfc717de6096b7ea2e55316a4",
+      "policy_id": "phase3_final_policy_v1",
+      "schema_version": "3.2.0"
+    }
+  },
+  "validation_benchmark_summary": {
+    "policy_a_point_model": {
+      "name": "Policy A (Point Model E)",
+      "confusion_matrix": {
+        "TP": 74,
+        "TN": 28141,
+        "FP": 159,
+        "FN": 207
+      },
+      "precision": 0.3176,
+      "recall": 0.2633,
+      "f1": 0.2879,
+      "fpr_pct": 0.56,
+      "fp_count": 159,
+      "ring_metrics": {
+        "total_rings": 24,
+        "detected_rings_at_least_1": 10,
+        "ring_recall": 0.4167,
+        "strong_ring_recall": 0.25,
+        "complete_ring_detection_rate": 0.2083,
+        "missed_rings_count": 14,
+        "missed_rings_pct": 0.5833,
+        "avg_detected_fraction_per_ring": 0.2772
+      },
+      "pattern_metrics": {
+        "pattern_A_recall": 0.3,
+        "pattern_B_recall": 0.0,
+        "pattern_C_recall": 1.0
+      },
+      "economics": {
+        "total_abuse_volume_inr": 1183999.71,
+        "gross_losses_prevented_inr": 314402.7,
+        "uncaught_abuse_loss_inr": 869597.01,
+        "benign_friction_cost_inr": 20670.0,
+        "analyst_review_cost_inr": 0.0,
+        "total_operational_cost_inr": 20670.0,
+        "net_economic_utility_inr": 293732.7
+      },
+      "action_counts": {
+        "ALLOW": 28348,
+        "BLOCK_TRANSACTION": 233
+      }
+    },
+    "policy_b_blanket_expansion": {
+      "name": "Policy B (Blanket Expansion)",
+      "confusion_matrix": {
+        "TP": 281,
+        "TN": 28002,
+        "FP": 298,
+        "FN": 0
+      },
+      "precision": 0.4853,
+      "recall": 1.0,
+      "f1": 0.6535,
+      "fpr_pct": 1.05,
+      "fp_count": 298,
+      "ring_metrics": {
+        "total_rings": 24,
+        "detected_rings_at_least_1": 24,
+        "ring_recall": 1.0,
+        "strong_ring_recall": 1.0,
+        "complete_ring_detection_rate": 1.0,
+        "missed_rings_count": 0,
+        "missed_rings_pct": 0.0,
+        "avg_detected_fraction_per_ring": 1.0
+      },
+      "pattern_metrics": {
+        "pattern_A_recall": 1.0,
+        "pattern_B_recall": 1.0,
+        "pattern_C_recall": 1.0
+      },
+      "economics": {
+        "total_abuse_volume_inr": 1183999.71,
+        "gross_losses_prevented_inr": 1183999.71,
+        "uncaught_abuse_loss_inr": 0.0,
+        "benign_friction_cost_inr": 38740.0,
+        "analyst_review_cost_inr": 0.0,
+        "total_operational_cost_inr": 38740.0,
+        "net_economic_utility_inr": 1145259.71
+      },
+      "action_counts": {
+        "ALLOW": 28002,
+        "BLOCK_TRANSACTION": 579
+      }
+    },
+    "policy_c_binary_gating": {
+      "name": "Policy C (Binary Gating)",
+      "confusion_matrix": {
+        "TP": 76,
+        "TN": 28107,
+        "FP": 193,
+        "FN": 205
+      },
+      "precision": 0.2825,
+      "recall": 0.2705,
+      "f1": 0.2764,
+      "fpr_pct": 0.68,
+      "fp_count": 193,
+      "ring_metrics": {
+        "total_rings": 24,
+        "detected_rings_at_least_1": 24,
+        "ring_recall": 1.0,
+        "strong_ring_recall": 0.1667,
+        "complete_ring_detection_rate": 0.125,
+        "missed_rings_count": 0,
+        "missed_rings_pct": 0.0,
+        "avg_detected_fraction_per_ring": 0.3017
+      },
+      "pattern_metrics": {
+        "pattern_A_recall": 1.0,
+        "pattern_B_recall": 1.0,
+        "pattern_C_recall": 1.0
+      },
+      "economics": {
+        "total_abuse_volume_inr": 1183999.71,
+        "gross_losses_prevented_inr": 318045.35,
+        "uncaught_abuse_loss_inr": 865954.36,
+        "benign_friction_cost_inr": 25090.0,
+        "analyst_review_cost_inr": 0.0,
+        "total_operational_cost_inr": 25090.0,
+        "net_economic_utility_inr": 292955.35
+      },
+      "action_counts": {
+        "ALLOW": 28312,
+        "BLOCK_TRANSACTION": 269
+      }
+    },
+    "policy_d_phase3_tiered": {
+      "name": "Policy D (Phase 3.2 Tiered)",
+      "confusion_matrix": {
+        "TP": 72,
+        "TN": 28146,
+        "FP": 154,
+        "FN": 209
+      },
+      "precision": 0.3186,
+      "recall": 0.2562,
+      "f1": 0.284,
+      "fpr_pct": 0.54,
+      "fp_count": 154,
+      "ring_metrics": {
+        "total_rings": 24,
+        "detected_rings_at_least_1": 24,
+        "ring_recall": 1.0,
+        "strong_ring_recall": 0.1667,
+        "complete_ring_detection_rate": 0.0833,
+        "missed_rings_count": 0,
+        "missed_rings_pct": 0.0,
+        "avg_detected_fraction_per_ring": 0.2892
+      },
+      "pattern_metrics": {
+        "pattern_A_recall": 1.0,
+        "pattern_B_recall": 1.0,
+        "pattern_C_recall": 1.0
+      },
+      "economics": {
+        "total_abuse_volume_inr": 1183999.71,
+        "gross_losses_prevented_inr": 266040.99,
+        "uncaught_abuse_loss_inr": 917958.72,
+        "benign_friction_cost_inr": 5085.0,
+        "analyst_review_cost_inr": 390.0,
+        "total_operational_cost_inr": 5475.0,
+        "net_economic_utility_inr": 260565.99
+      },
+      "action_counts": {
+        "ALLOW": 28355,
+        "STEP_UP_2FA": 138,
+        "DELAY_SETTLEMENT": 55,
+        "BLOCK_TRANSACTION": 30,
+        "RESTRICT_ACCOUNT": 3
+      }
+    }
+  },
+  "hard_negatives_summary": {
+    "household_sharing": {
+      "txns": 879,
+      "policy_b_blocks": 11,
+      "policy_b_cost": 1430.0,
+      "policy_d_blocks": 0,
+      "policy_d_cost": 0.0,
+      "reduction_pct": 100.0
+    },
+    "shared_network": {
+      "txns": 1174,
+      "policy_b_blocks": 5,
+      "policy_b_cost": 650.0,
+      "policy_d_blocks": 0,
+      "policy_d_cost": 0.0,
+      "reduction_pct": 100.0
+    },
+    "high_refund_customer": {
+      "txns": 1149,
+      "policy_b_blocks": 5,
+      "policy_b_cost": 650.0,
+      "policy_d_blocks": 0,
+      "policy_d_cost": 75.0,
+      "reduction_pct": 88.5
+    },
+    "multi_device_customer": {
+      "txns": 645,
+      "policy_b_blocks": 2,
+      "policy_b_cost": 260.0,
+      "policy_d_blocks": 0,
+      "policy_d_cost": 30.0,
+      "reduction_pct": 88.5
+    },
+    "high_volume_merchant": {
+      "txns": 9559,
+      "policy_b_blocks": 53,
+      "policy_b_cost": 6890.0,
+      "policy_d_blocks": 0,
+      "policy_d_cost": 150.0,
+      "reduction_pct": 97.8
+    }
+  },
+  "adversarial_cases_summary": {
+    "total_cases": 12,
+    "passed_cases": 12,
+    "cases": [
+      {
+        "case_id": "ADV-01",
+        "name": "Sybil Account Flood (50 accounts on 1 IP)",
+        "tier": "TERTIARY",
+        "amount": 450.0,
+        "p1_risk": 0.08,
+        "actual_action": "ALLOW",
+        "requires_human_approval": false,
+        "passed": true,
+        "rationale": "Hubness penalty protects shared IP without false block"
+      },
+      {
+        "case_id": "ADV-02",
+        "name": "Delayed Bust-Out (Warm-up -> Rs.75,000 cash-out)",
+        "tier": "SECONDARY",
+        "amount": 75000.0,
+        "p1_risk": 0.48,
+        "actual_action": "MANUAL_REVIEW",
+        "requires_human_approval": true,
+        "passed": true,
+        "rationale": "High-value guardrail escalates block to analyst review"
+      },
+      {
+        "case_id": "ADV-03",
+        "name": "Campus Wi-Fi Flash Mob (200 students)",
+        "tier": "ISOLATED",
+        "amount": 350.0,
+        "p1_risk": 0.02,
+        "actual_action": "ALLOW",
+        "requires_human_approval": false,
+        "passed": true,
+        "rationale": "IP hubness discount prevents mass false positive"
+      },
+      {
+        "case_id": "ADV-04",
+        "name": "Rotating Burner Device Burst (Device Shuffling)",
+        "tier": "PRIMARY",
+        "amount": 12000.0,
+        "p1_risk": 0.35,
+        "actual_action": "BLOCK_TRANSACTION",
+        "requires_human_approval": false,
+        "passed": true,
+        "rationale": "Coordinated instrument & IP link triggers primary block"
+      },
+      {
+        "case_id": "ADV-05",
+        "name": "Refund Arbitrage Storm (Rapid Dispute Velocity)",
+        "tier": "PRIMARY",
+        "amount": 8500.0,
+        "p1_risk": 0.08,
+        "actual_action": "DELAY_SETTLEMENT",
+        "requires_human_approval": false,
+        "passed": true,
+        "rationale": "Outcome evidence halts payout settlement without block"
+      },
+      {
+        "case_id": "ADV-06",
+        "name": "Slow-Drip Mule Train (Low Velocity Routing)",
+        "tier": "PRIMARY",
+        "amount": 4000.0,
+        "p1_risk": 0.005,
+        "actual_action": "STEP_UP_2FA",
+        "requires_human_approval": false,
+        "passed": true,
+        "rationale": "Primary mule suspect challenged with 2FA/Delay on low p1"
+      },
+      {
+        "case_id": "ADV-07",
+        "name": "High-Volume Gateway Merchant Aggregation",
+        "tier": "TERTIARY",
+        "amount": 1500.0,
+        "p1_risk": 0.06,
+        "actual_action": "ALLOW",
+        "requires_human_approval": false,
+        "passed": true,
+        "rationale": "Merchant degree penalty shields innocent merchant customers"
+      },
+      {
+        "case_id": "ADV-08",
+        "name": "Compromised Household Shared Tablet",
+        "tier": "TERTIARY",
+        "amount": 2200.0,
+        "p1_risk": 0.03,
+        "actual_action": "ALLOW",
+        "requires_human_approval": false,
+        "passed": true,
+        "rationale": "Tertiary protection shields benign household member"
+      },
+      {
+        "case_id": "ADV-09",
+        "name": "Missing Sensor Attributes (Null Device/IP)",
+        "tier": "ISOLATED",
+        "amount": 1500.0,
+        "p1_risk": 0.12,
+        "actual_action": "ALLOW",
+        "requires_human_approval": false,
+        "passed": true,
+        "rationale": "Abstention policy prevents reckless automated hard block"
+      },
+      {
+        "case_id": "ADV-10",
+        "name": "Point-in-Time Temporal Attack (Future timestamp)",
+        "tier": "ISOLATED",
+        "amount": 5000.0,
+        "p1_risk": 0.05,
+        "actual_action": "ALLOW",
+        "requires_human_approval": false,
+        "passed": true,
+        "rationale": "Temporal causal boundary strictly isolates future events"
+      },
+      {
+        "case_id": "ADV-11",
+        "name": "Coordinated Competitor Freeze Probing",
+        "tier": "SECONDARY",
+        "amount": 8000.0,
+        "p1_risk": 0.25,
+        "actual_action": "STEP_UP_2FA",
+        "requires_human_approval": false,
+        "passed": true,
+        "rationale": "Human approval gate prevents automated malicious ring freeze"
+      },
+      {
+        "case_id": "ADV-12",
+        "name": "Extreme Transaction Spike (> Rs.100,000)",
+        "tier": "PRIMARY",
+        "amount": 150000.0,
+        "p1_risk": 0.65,
+        "actual_action": "RESTRICT_ACCOUNT",
+        "requires_human_approval": true,
+        "passed": true,
+        "rationale": "Absolute amount safety guardrail mandates human review"
+      }
+    ]
+  },
+  "pareto_frontier": [
+    {
+      "scaling_factor": 0.7,
+      "fpr_pct": 1.29,
+      "recall_pct": 27.76,
+      "ring_recall_pct": 100.0,
+      "net_utility_inr": 277763.77,
+      "total_op_cost_inr": 15940.0,
+      "hard_blocks": 94
+    },
+    {
+      "scaling_factor": 0.8,
+      "fpr_pct": 0.87,
+      "recall_pct": 27.76,
+      "ring_recall_pct": 100.0,
+      "net_utility_inr": 278088.08,
+      "total_op_cost_inr": 11320.0,
+      "hard_blocks": 70
+    },
+    {
+      "scaling_factor": 0.9,
+      "fpr_pct": 0.64,
+      "recall_pct": 27.05,
+      "ring_recall_pct": 100.0,
+      "net_utility_inr": 273872.48,
+      "total_op_cost_inr": 7290.0,
+      "hard_blocks": 42
+    },
+    {
+      "scaling_factor": 1.0,
+      "fpr_pct": 0.54,
+      "recall_pct": 25.62,
+      "ring_recall_pct": 100.0,
+      "net_utility_inr": 260565.99,
+      "total_op_cost_inr": 5475.0,
+      "hard_blocks": 30
+    },
+    {
+      "scaling_factor": 1.1,
+      "fpr_pct": 0.46,
+      "recall_pct": 18.51,
+      "ring_recall_pct": 100.0,
+      "net_utility_inr": 189714.15,
+      "total_op_cost_inr": 3300.0,
+      "hard_blocks": 15
+    },
+    {
+      "scaling_factor": 1.2,
+      "fpr_pct": 0.42,
+      "recall_pct": 15.3,
+      "ring_recall_pct": 100.0,
+      "net_utility_inr": 161426.15,
+      "total_op_cost_inr": 2705.0,
+      "hard_blocks": 14
+    },
+    {
+      "scaling_factor": 1.3,
+      "fpr_pct": 0.37,
+      "recall_pct": 14.95,
+      "ring_recall_pct": 100.0,
+      "net_utility_inr": 153121.82,
+      "total_op_cost_inr": 2190.0,
+      "hard_blocks": 3
+    }
+  ],
+  "action_stream_sha256": "5c58267d607656a854ec48dbc1014643d6dd54515c738227934523be6b075013"
+}

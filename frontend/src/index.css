@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-fintech-bg text-fintech-textPrimary font-sans antialiased;
+    background-color: #F4F6F8;
+    color: #172033;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Monospace formatting strictly for technical data */
+  code, pre, .font-mono, .mono-data {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Custom scrollbars for enterprise data tables and audit panels */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Common enterprise fintech interactive styles */
+.enterprise-card {
+  background-color: #FFFFFF;
+  border: 1px solid #D9DEE7;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(16, 24, 40, 0.05);
+}
+
+.table-header {
+  background-color: #F8FAFC;
+  border-bottom: 1px solid #D9DEE7;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #667085;
+}

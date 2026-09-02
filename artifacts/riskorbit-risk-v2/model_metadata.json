@@ -1,0 +1,27 @@
+{
+  "model_type": "LightGBMClassifier_GraphEnhanced",
+  "model_version": "riskorbit-risk-v2",
+  "training_seed": 42,
+  "dataset_version": "phase1-v1",
+  "graph_version": "graph-v2",
+  "feature_version": "phase2-graph-v2",
+  "training_timestamp": "2026-08-27T04:29:15.412004+00:00",
+  "threshold": 0.32,
+  "threshold_selection_partition": "validation",
+  "validation_metrics": {
+    "partition": "LightGBM_v2/val",
+    "precision": 0.3676,
+    "recall": 0.242,
+    "f1": 0.2918,
+    "pr_auc": 0.0918,
+    "brier_score": 0.01,
+    "fpr": 0.0041,
+    "accuracy": 0.9885,
+    "tp": 68,
+    "tn": 28183,
+    "fp": 117,
+    "fn": 213,
+    "support_positive": 281,
+    "support_negative": 28300
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "policy_id": "phase3_final_policy_v1",
+  "schema_version": "3.2.0",
+  "description": "RiskOrbit Phase 3.2 Final Pre-Holdout Validated Policy",
+  "max_auto_block_amount_inr": 50000.0,
+  "max_auto_action_amount_inr": 100000.0,
+  "tertiary_p1_safety_threshold": 0.35,
+  "enable_human_gate": true,
+  "tier_rules": {
+    "PRIMARY": {
+      "tier": "PRIMARY",
+      "block_threshold_decision": 0.6,
+      "block_threshold_p1": 0.3,
+      "delay_threshold_decision": 0.5,
+      "delay_threshold_p1": 0.05,
+      "step_up_threshold_decision": 0.4,
+      "step_up_threshold_p1": 0.0,
+      "restrict_account_min_evidence": 0.85,
+      "freeze_ring_min_members": 5
+    },
+    "SECONDARY": {
+      "tier": "SECONDARY",
+      "block_threshold_decision": 0.75,
+      "block_threshold_p1": 0.4,
+      "delay_threshold_decision": 0.55,
+      "delay_threshold_p1": 0.25,
+      "step_up_threshold_decision": 0.4,
+      "step_up_threshold_p1": 0.15,
+      "restrict_account_min_evidence": 0.9,
+      "freeze_ring_min_members": 5
+    },
+    "TERTIARY": {
+      "tier": "TERTIARY",
+      "block_threshold_decision": 0.85,
+      "block_threshold_p1": 0.5,
+      "delay_threshold_decision": 0.65,
+      "delay_threshold_p1": 0.35,
+      "step_up_threshold_decision": 0.45,
+      "step_up_threshold_p1": 0.2,
+      "restrict_account_min_evidence": 0.95,
+      "freeze_ring_min_members": 5
+    },
+    "ISOLATED": {
+      "tier": "ISOLATED",
+      "block_threshold_decision": 0.7,
+      "block_threshold_p1": 0.35,
+      "delay_threshold_decision": 0.55,
+      "delay_threshold_p1": 0.25,
+      "step_up_threshold_decision": 0.4,
+      "step_up_threshold_p1": 0.15,
+      "restrict_account_min_evidence": 0.99,
+      "freeze_ring_min_members": 5
+    }
+  },
+  "weights": {
+    "weight_phase1": 0.35,
+    "weight_member_conf": 0.30,
+    "weight_edge_strength": 0.15,
+    "weight_diversity": 0.20
+  },
+  "metadata": {
+    "author": "RiskOrbit Architecture Team",
+    "tuning_dataset": "data/splits/validation.csv",
+    "phase": "3.2",
+    "status": "frozen_pre_holdout"
+  }
+}

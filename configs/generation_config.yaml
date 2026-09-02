@@ -1,0 +1,279 @@
+# ============================================================
+# RiskOrbit — Generation & Training Configuration
+# All random seeds and scale parameters live here.
+# Never hard-code these values in source files.
+# ============================================================
+
+seed: 42
+
+# ------------------------------------
+# Dataset scale
+# ------------------------------------
+scale:
+  n_customers: 22000
+  n_merchants: 1100
+  n_devices: 13000
+  n_ip_entities: 9000
+  n_instruments: 18000
+  target_orders: 110000
+  target_refund_rate: 0.18        # ~18% of orders get a refund request
+
+# ------------------------------------
+# Temporal window
+# ------------------------------------
+temporal:
+  start_date: "2023-01-01"
+  end_date:   "2024-12-31"        # 2 years gives seasonal patterns
+
+# ------------------------------------
+# Legitimate behavior distributions
+# ------------------------------------
+legitimate:
+  # Transaction amount distributions (mixture model)
+  amount_distributions:
+    - name: low_value
+      weight: 0.45
+      dist: lognormal
+      mean: 5.5      # log-scale → ~$245 mean
+      std: 0.8
+    - name: mid_value
+      weight: 0.40
+      dist: lognormal
+      mean: 7.0      # log-scale → ~$1100 mean
+      std: 0.7
+    - name: high_value
+      weight: 0.15
+      dist: lognormal
+      mean: 8.5      # log-scale → ~$4900 mean
+      std: 0.6
+
+  # Customer segments
+  customer_segments:
+    - name: casual
+      weight: 0.50
+      monthly_orders_mean: 1.2
+      monthly_orders_std: 0.8
+      refund_rate: 0.08
+    - name: regular
+      weight: 0.30
+      monthly_orders_mean: 3.5
+      monthly_orders_std: 1.5
+      refund_rate: 0.12
+    - name: power_user
+      weight: 0.15
+      monthly_orders_mean: 8.0
+      monthly_orders_std: 3.0
+      refund_rate: 0.15
+    - name: enterprise
+      weight: 0.05
+      monthly_orders_mean: 25.0
+      monthly_orders_std: 8.0
+      refund_rate: 0.10
+
+  # Merchant categories and natural refund rates
+  merchant_categories:
+    - name: electronics
+      weight: 0.15
+      refund_rate: 0.22
+      avg_order_value_multiplier: 3.0
+    - name: fashion
+      weight: 0.25
+      refund_rate: 0.28
+      avg_order_value_multiplier: 1.0
+    - name: grocery
+      weight: 0.20
+      refund_rate: 0.05
+      avg_order_value_multiplier: 0.4
+    - name: travel
+      weight: 0.10
+      refund_rate: 0.18
+      avg_order_value_multiplier: 5.0
+    - name: food_delivery
+      weight: 0.15
+      refund_rate: 0.08
+      avg_order_value_multiplier: 0.3
+    - name: services
+      weight: 0.10
+      refund_rate: 0.10
+      avg_order_value_multiplier: 2.0
+    - name: gaming
+      weight: 0.05
+      refund_rate: 0.06
+      avg_order_value_multiplier: 0.8
+
+  # Devices per customer (household sharing modeled here)
+  devices_per_customer:
+    mean: 1.8
+    std: 0.9
+    max: 6
+
+  # IPs per customer
+  ips_per_customer:
+    mean: 2.5
+    std: 1.2
+    max: 10
+
+  # Seasonal multipliers by month (Jan=1 … Dec=12)
+  seasonal_multipliers:
+    1:  0.85    # Jan — post-holiday dip
+    2:  0.80
+    3:  0.90
+    4:  0.95
+    5:  1.00
+    6:  1.05
+    7:  1.00
+    8:  1.05
+    9:  1.00
+    10: 1.05
+    11: 1.40    # Nov — Diwali/Black Friday
+    12: 1.60    # Dec — Christmas/Year-end
+
+# ------------------------------------
+# Hard negatives (legitimate confusers)
+# ------------------------------------
+hard_negatives:
+  household_sharing:
+    n_households: 300
+    accounts_per_household_mean: 2.8
+    accounts_per_household_max: 6
+  shared_network:
+    n_networks: 150
+    accounts_per_network_mean: 12
+    accounts_per_network_max: 40
+  high_refund_customer:
+    n_customers: 400
+    refund_rate_min: 0.50
+    refund_rate_max: 0.85
+    reason: "legitimate_serial_returner"
+  high_volume_merchant:
+    n_merchants: 30
+    volume_multiplier_min: 4
+    volume_multiplier_max: 10
+  seasonal_spike:
+    months: [11, 12]
+    spike_multiplier: 3.0
+    n_customers: 500
+  new_customer_high_value:
+    n_customers: 250
+    max_account_age_days: 14
+    min_amount: 5000
+  multi_device_customer:
+    n_customers: 350
+    min_devices: 4
+    max_devices: 8
+
+# ------------------------------------
+# Abuse rings
+# ------------------------------------
+abuse:
+  n_rings_pattern_a: 60    # shared-device ring
+  n_rings_pattern_b: 50    # cross-merchant ring
+  n_rings_pattern_c: 50    # rotating-account ring
+
+  # Pattern A — shared-device
+  pattern_a:
+    accounts_per_ring_min: 3
+    accounts_per_ring_max: 8
+    shared_devices_per_ring: 1
+    refund_cycles_per_account: 3
+    timing_burst_hours: 48
+    coordination_jitter_hours: 6
+
+  # Pattern B — cross-merchant
+  pattern_b:
+    accounts_per_ring_min: 4
+    accounts_per_ring_max: 10
+    merchants_targeted_per_ring: 3
+    refund_cycles_per_account: 2
+    individual_look_legitimate: true    # each account alone looks OK
+    coordination_window_days: 14
+
+  # Pattern C — rotating-account
+  pattern_c:
+    accounts_per_ring_min: 5
+    accounts_per_ring_max: 12
+    max_account_age_days: 60    # relatively new accounts
+    linking_ip_id: true
+    linking_instrument_family: true
+    refund_cycles_per_account: 2
+    rotation_interval_days: 7
+
+  # Abuse amounts: plausible, NOT obviously large
+  amount_min: 200
+  amount_max: 8000
+  refund_delay_hours_min: 12
+  refund_delay_hours_max: 120
+
+# ------------------------------------
+# Data splits
+# ------------------------------------
+splits:
+  train_ratio: 0.70
+  validation_ratio: 0.15
+  holdout_ratio: 0.15
+  # ring-aware: whole rings assigned to one partition
+  # legitimate rows split by time after ring assignment
+
+# ------------------------------------
+# Feature engineering
+# ------------------------------------
+features:
+  rolling_windows_hours: [1, 6, 24, 168]   # 1h, 6h, 24h, 7d
+  min_transactions_for_rate: 3
+  max_clip_accounts_per_device: 50
+  max_clip_accounts_per_ip: 200
+
+# ------------------------------------
+# Model training
+# ------------------------------------
+model:
+  lgbm:
+    n_estimators: 800
+    learning_rate: 0.05
+    num_leaves: 63
+    max_depth: -1
+    min_child_samples: 20
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_alpha: 0.1
+    reg_lambda: 1.0
+    class_weight: balanced
+    random_state: 42
+    n_jobs: -1
+    verbose: -1
+
+  logistic:
+    max_iter: 1000
+    C: 1.0
+    class_weight: balanced
+    random_state: 42
+    solver: lbfgs
+
+# ------------------------------------
+# Threshold selection (on validation)
+# ------------------------------------
+threshold:
+  objective: maximize_f1          # maximize F1 subject to fpr_max constraint
+  fpr_max: 0.05                   # hard constraint: FPR ≤ 5%
+  search_step: 0.01
+
+# ------------------------------------
+# False-positive cost model
+# ------------------------------------
+cost_model:
+  intervention_type: "soft_hold"  # assumed intervention type
+  avg_legitimate_txn_value: 1200  # INR, synthetic assumption
+  friction_cost_per_fp: 50        # INR, customer friction estimate
+  review_cost_per_fp: 80          # INR, analyst review estimate
+  # Total FP cost = avg_legitimate_txn_value * block_rate_assumption
+  #               + friction_cost_per_fp + review_cost_per_fp
+  block_rate_assumption: 0.0      # Phase 1 = flag only, no blocking
+  # Economic cost attributed = friction + review for now
+
+# ------------------------------------
+# API
+# ------------------------------------
+api:
+  host: "0.0.0.0"
+  port: 8000
+  model_version: "riskorbit-risk-v1"

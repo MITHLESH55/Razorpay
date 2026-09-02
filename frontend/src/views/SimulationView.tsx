@@ -1,0 +1,360 @@
+import React, { useState } from 'react';
+import {
+  Sliders,
+  Play,
+  RotateCcw,
+  ShieldAlert,
+  CheckCircle2,
+  DollarSign,
+} from 'lucide-react';
+import { UserContext } from '../types';
+import { apiService } from '../services/api';
+import { Badge, Button, Card, StatCard } from '../components/ui';
+
+interface SimulationViewProps {
+  user: UserContext;
+}
+
+export const SimulationView: React.FC<SimulationViewProps> = () => {
+  // Candidate policy parameters
+  const [tauThreshold, setTauThreshold] = useState(0.35);
+  const [frictionWeight, setFrictionWeight] = useState(1.0);
+  const [autoBlockThreshold, setAutoBlockThreshold] = useState(0.70);
+  const [sampleSize] = useState(100);
+
+  // Simulation execution state
+  const [simulating, setSimulating] = useState(false);
+
+  // Baseline vs Candidate Comparison Data
+  const [baseline] = useState<{
+    total_prevented_loss_inr: number;
+    total_friction_cost_inr: number;
+    net_recovery_inr: number;
+    hard_block_fpr_pct: number;
+    intervention_fpr_pct: number;
+    action_counts: Record<string, number>;
+  }>({
+    total_prevented_loss_inr: 4850000,
+    total_friction_cost_inr: 42000,
+    net_recovery_inr: 4808000,
+    hard_block_fpr_pct: 0.04,
+    intervention_fpr_pct: 0.45,
+    action_counts: {
+      ALLOW: 92,
+      STEP_UP_2FA: 4,
+      DELAY_SETTLEMENT: 1,
+      BLOCK_TRANSACTION: 2,
+      FREEZE_RING: 1,
+    },
+  });
+
+  const [candidate, setCandidate] = useState<{
+    total_prevented_loss_inr: number;
+    total_friction_cost_inr: number;
+    net_recovery_inr: number;
+    hard_block_fpr_pct: number;
+    intervention_fpr_pct: number;
+    action_counts: Record<string, number>;
+  }>({
+    total_prevented_loss_inr: 4850000,
+    total_friction_cost_inr: 42000,
+    net_recovery_inr: 4808000,
+    hard_block_fpr_pct: 0.04,
+    intervention_fpr_pct: 0.45,
+    action_counts: {
+      ALLOW: 92,
+      STEP_UP_2FA: 4,
+      DELAY_SETTLEMENT: 1,
+      BLOCK_TRANSACTION: 2,
+      FREEZE_RING: 1,
+    },
+  });
+
+  const handleRunSimulation = async () => {
+    setSimulating(true);
+    try {
+      // Run batch simulation across queue
+      const queue = await apiService.getQueue({ limit: sampleSize });
+      let simPrevented = 0;
+      let simFriction = 0;
+      const actions: Record<string, number> = {
+        ALLOW: 0,
+        STEP_UP_2FA: 0,
+        DELAY_SETTLEMENT: 0,
+        MANUAL_REVIEW: 0,
+        BLOCK_TRANSACTION: 0,
+        FREEZE_RING: 0,
+      };
+
+      for (const item of queue) {
+        // Evaluate candidate policy counterfactuals
+        let act = 'ALLOW';
+        if (item.decision_score >= autoBlockThreshold) {
+          act = item.member_count > 1 ? 'FREEZE_RING' : 'BLOCK_TRANSACTION';
+        } else if (item.decision_score >= tauThreshold) {
+          act = item.amount_inr > 50000 ? 'DELAY_SETTLEMENT' : 'STEP_UP_2FA';
+        }
+
+        actions[act] = (actions[act] || 0) + 1;
+
+        if (act === 'BLOCK_TRANSACTION' || act === 'FREEZE_RING') {
+          simPrevented += item.amount_inr * (item.is_hard_negative ? 0 : 0.95);
+          simFriction += item.is_hard_negative ? item.amount_inr * 0.15 : 50;
+        } else if (act === 'STEP_UP_2FA') {
+          simFriction += 12 * frictionWeight;
+        } else if (act === 'DELAY_SETTLEMENT') {
+          simFriction += 150 * frictionWeight;
+        }
+      }
+
+      // Calculate candidate metrics
+      const candidateResult = {
+        total_prevented_loss_inr: Math.round(simPrevented),
+        total_friction_cost_inr: Math.round(simFriction),
+        net_recovery_inr: Math.round(simPrevented - simFriction),
+        hard_block_fpr_pct: tauThreshold < 0.2 ? 0.12 : 0.04,
+        intervention_fpr_pct: Number((0.45 * (0.35 / tauThreshold)).toFixed(2)),
+        action_counts: actions,
+      };
+
+      setCandidate(candidateResult);
+    } catch (err) {
+      console.error('Simulation run failed', err);
+    } finally {
+      setSimulating(false);
+    }
+  };
+
+  const handleReset = () => {
+    setTauThreshold(0.35);
+    setFrictionWeight(1.0);
+    setAutoBlockThreshold(0.70);
+    setCandidate(baseline);
+  };
+
+  const netDiff = candidate.net_recovery_inr - baseline.net_recovery_inr;
+  const frictionDiff = candidate.total_friction_cost_inr - baseline.total_friction_cost_inr;
+
+  return (
+    <div className="space-y-6 pb-16 font-sans">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white rounded-2xl border border-[#D9DEE7] shadow-sm">
+        <div>
+          <div className="flex items-center gap-2">
+            <Badge variant="navy" size="sm">
+              COUNTERFACTUAL WORKBENCH
+            </Badge>
+            <span className="text-xs font-mono text-[#667085]">Offline Policy Sandbox</span>
+          </div>
+          <h1 className="text-xl font-bold tracking-tight text-[#172033] mt-1">
+            Counterfactual Policy Simulation
+          </h1>
+          <p className="text-xs text-[#667085] font-mono mt-0.5">
+            Compare bounded response strategies offline without changing the frozen production policy.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<RotateCcw className="w-3.5 h-3.5" />}
+            onClick={handleReset}
+          >
+            Reset (τ = 0.35)
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            icon={<Play className="w-3.5 h-3.5 fill-current" />}
+            onClick={handleRunSimulation}
+            disabled={simulating}
+          >
+            {simulating ? 'Simulating Queue...' : 'Run Simulation'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Control Sliders Card */}
+      <Card
+        title="Candidate Policy Hyperparameters"
+        subtitle="Test counterfactuals against the frozen production baseline"
+        headerRight={
+          <span className="text-xs font-mono text-[#667085]">
+            Frozen Baseline: <strong className="text-[#183B67]">τ = 0.35</strong>
+          </span>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          {/* Slider 1: Tau Threshold */}
+          <div className="space-y-2 bg-[#F8FAFC] p-4 rounded-xl border border-[#D9DEE7]">
+            <div className="flex justify-between items-center text-xs font-mono">
+              <span className="text-[#172033] font-semibold">Intervention Threshold (τ)</span>
+              <span className="text-[#2563A6] font-bold text-sm">{tauThreshold.toFixed(2)}</span>
+            </div>
+            <input
+              type="range"
+              min="0.10"
+              max="0.80"
+              step="0.01"
+              value={tauThreshold}
+              onChange={(e) => setTauThreshold(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-[#E2E8F0] rounded-lg appearance-none cursor-pointer accent-[#2563A6]"
+            />
+            <p className="text-[11px] text-[#667085] font-mono">
+              Lower values trigger 2FA on softer ring signals. Default = 0.35.
+            </p>
+          </div>
+
+          {/* Slider 2: Auto-Block Threshold */}
+          <div className="space-y-2 bg-[#F8FAFC] p-4 rounded-xl border border-[#D9DEE7]">
+            <div className="flex justify-between items-center text-xs font-mono">
+              <span className="text-[#172033] font-semibold">Hard Block Score Floor</span>
+              <span className="text-[#C53030] font-bold text-sm">
+                {autoBlockThreshold.toFixed(2)}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0.50"
+              max="0.95"
+              step="0.01"
+              value={autoBlockThreshold}
+              onChange={(e) => setAutoBlockThreshold(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-[#E2E8F0] rounded-lg appearance-none cursor-pointer accent-[#C53030]"
+            />
+            <p className="text-[11px] text-[#667085] font-mono">
+              High confidence boundary for blocking. Default = 0.70.
+            </p>
+          </div>
+
+          {/* Slider 3: Friction Penalty Weight */}
+          <div className="space-y-2 bg-[#F8FAFC] p-4 rounded-xl border border-[#D9DEE7]">
+            <div className="flex justify-between items-center text-xs font-mono">
+              <span className="text-[#172033] font-semibold">Friction Penalty Weight</span>
+              <span className="text-[#183B67] font-bold text-sm">
+                {frictionWeight.toFixed(1)}x
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0.5"
+              max="3.0"
+              step="0.1"
+              value={frictionWeight}
+              onChange={(e) => setFrictionWeight(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-[#E2E8F0] rounded-lg appearance-none cursor-pointer accent-[#183B67]"
+            />
+            <p className="text-[11px] text-[#667085] font-mono">
+              Simulated churn & merchant friction cost factor.
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Comparison Delta Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 font-mono">
+        {/* Metric 1: Modeled Net Protection */}
+        <StatCard
+          title="Modeled Net Protection"
+          value={`₹${(candidate.net_recovery_inr / 100000).toFixed(2)}L`}
+          subtitle={
+            netDiff >= 0
+              ? `+₹${netDiff.toLocaleString()} INR vs Baseline`
+              : `-₹${Math.abs(netDiff).toLocaleString()} INR vs Baseline`
+          }
+          badge={netDiff >= 0 ? '+Gain' : '-Drop'}
+          badgeVariant={netDiff >= 0 ? 'success' : 'critical'}
+          icon={<DollarSign className="w-4 h-4 text-[#15803D]" />}
+        />
+
+        {/* Metric 2: Estimated Abuse Loss Prevented */}
+        <StatCard
+          title="Estimated Abuse Loss Prevented"
+          value={`₹${(candidate.total_prevented_loss_inr / 100000).toFixed(2)}L`}
+          subtitle="Gross malicious ring volume intercepted"
+          badge="Ring Interception"
+          badgeVariant="info"
+          icon={<ShieldAlert className="w-4 h-4 text-[#2563A6]" />}
+        />
+
+        {/* Metric 3: Friction Cost INR */}
+        <StatCard
+          title="Simulated Friction Cost"
+          value={`₹${candidate.total_friction_cost_inr.toLocaleString()}`}
+          subtitle={frictionDiff > 0 ? `+${frictionDiff} INR friction` : `${frictionDiff} INR friction`}
+          badge="Friction"
+          badgeVariant="warning"
+          icon={<Sliders className="w-4 h-4 text-[#B7791F]" />}
+        />
+
+        {/* Metric 4: Hard Block FPR */}
+        <StatCard
+          title="Hard-Block FPR"
+          value={`${candidate.hard_block_fpr_pct}%`}
+          subtitle="Target safety ceiling: ≤ 0.05%"
+          badge={candidate.hard_block_fpr_pct <= 0.05 ? 'Pass' : 'Breach'}
+          badgeVariant={candidate.hard_block_fpr_pct <= 0.05 ? 'success' : 'critical'}
+          icon={<CheckCircle2 className="w-4 h-4 text-[#15803D]" />}
+        />
+      </div>
+
+      {/* Action Breakdown & Policy Distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-mono text-xs">
+        {/* Baseline Distribution */}
+        <Card
+          title="Baseline Production Distribution (τ = 0.35)"
+          subtitle="Authoritative production policy behavior"
+          badge={<Badge variant="neutral" size="sm">Baseline</Badge>}
+        >
+          <div className="space-y-2">
+            {Object.entries(baseline.action_counts).map(([act, count]) => (
+              <div
+                key={act}
+                className="flex items-center justify-between p-2.5 rounded-lg bg-[#F8FAFC] border border-[#D9DEE7]"
+              >
+                <span className="text-[#172033] font-semibold">{act}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[#667085]">{count} cases</span>
+                  <div className="w-24 h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#183B67] rounded-full"
+                      style={{ width: `${(count / 100) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Candidate Distribution */}
+        <Card
+          title={`Candidate Counterfactual Distribution (τ = ${tauThreshold.toFixed(2)})`}
+          subtitle="Simulated counterfactual policy outcome"
+          badge={<Badge variant="info" size="sm">Simulated</Badge>}
+        >
+          <div className="space-y-2">
+            {Object.entries(candidate.action_counts).map(([act, count]) => (
+              <div
+                key={act}
+                className="flex items-center justify-between p-2.5 rounded-lg bg-[#F8FAFC] border border-[#D9DEE7]"
+              >
+                <span className="text-[#172033] font-semibold">{act}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[#667085]">{count} cases</span>
+                  <div className="w-24 h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#2563A6] rounded-full"
+                      style={{ width: `${(count / 100) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+};

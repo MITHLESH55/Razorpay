@@ -1,0 +1,10 @@
+{
+  "train_rows": 133446,
+  "val_rows": 28581,
+  "test_rows": 28591,
+  "train_abuse_rate": 0.010333767966068672,
+  "val_abuse_rate": 0.009831706378363248,
+  "test_abuse_rate": 0.01014305200937358,
+  "split_algorithm": "ring_aware_time_ordered",
+  "ring_leakage_checked": true
+}

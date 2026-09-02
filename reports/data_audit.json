@@ -1,0 +1,57 @@
+{
+  "total_transactions": 190618,
+  "total_orders": 190615,
+  "total_refunds": 36128,
+  "total_customers": 22000,
+  "total_merchants": 1100,
+  "total_devices": 13000,
+  "total_ip_entities": 9000,
+  "total_instruments": 18000,
+  "abuse_transaction_count": 1950,
+  "abuse_prevalence": 0.010229883851472579,
+  "abuse_rings_count": 160,
+  "abuse_patterns_breakdown": {
+    "pattern_a_shared_device": 805,
+    "pattern_c_rotating_account": 597,
+    "pattern_b_cross_merchant": 548
+  },
+  "hard_negative_breakdown": {
+    "none": 101632,
+    "high_volume_merchant": 63110,
+    "shared_network": 8011,
+    "high_refund_customer": 7729,
+    "household_sharing": 6025,
+    "multi_device_customer": 4111
+  },
+  "temporal_coverage": {
+    "min_timestamp": "2023-01-01 00:00:06",
+    "max_timestamp": "2024-12-30 23:53:10",
+    "duration_days": 729.9951851851852
+  },
+  "amount_stats": {
+    "mean": 1039.1189153700072,
+    "std": 1280.3933492797828,
+    "min": 10.9,
+    "p25": 324.82,
+    "median": 617.975,
+    "p75": 1220.225,
+    "p95": 3412.086,
+    "max": 29947.66
+  },
+  "refund_stats": {
+    "total_refund_amount": 32068826.379999995,
+    "mean_refund_amount": 887.6446628653674,
+    "median_refund_amount": 490.855,
+    "refund_rate_overall": 0.18953089424923145
+  },
+  "device_reuse": {
+    "mean_accounts_per_device": 12.838076923076922,
+    "max_accounts_per_device": 29,
+    "devices_with_multiple_accounts": 12998
+  },
+  "ip_reuse": {
+    "mean_accounts_per_ip": 11.382444444444445,
+    "max_accounts_per_ip": 35,
+    "ips_with_multiple_accounts": 8999
+  }
+}
