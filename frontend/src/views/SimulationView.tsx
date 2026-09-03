@@ -16,6 +16,29 @@ interface SimulationViewProps {
   user: UserContext;
 }
 
+const isPolicySimulationResponse = (value: unknown): value is PolicySimulationResponse => {
+  if (!value || typeof value !== 'object') return false;
+  const response = value as PolicySimulationResponse;
+  const hasMetrics = (metrics: PolicySimulationResponse['baseline']) =>
+    metrics &&
+    typeof metrics.total_prevented_loss_inr === 'number' &&
+    typeof metrics.total_friction_cost_inr === 'number' &&
+    typeof metrics.net_recovery_inr === 'number' &&
+    typeof metrics.hard_block_fpr_pct === 'number' &&
+    typeof metrics.intervention_fpr_pct === 'number' &&
+    metrics.action_counts &&
+    typeof metrics.action_counts === 'object';
+  return hasMetrics(response.baseline) &&
+    hasMetrics(response.candidate) &&
+    typeof response.parameters?.tau_threshold === 'number' &&
+    typeof response.parameters?.hard_block_floor === 'number' &&
+    typeof response.parameters?.friction_weight === 'number' &&
+    typeof response.parameters?.sample_size === 'number' &&
+    typeof response.frozen_policy_version === 'string' &&
+    response.status_tag === 'SIMULATED' &&
+    typeof response.provenance === 'string';
+};
+
 export const SimulationView: React.FC<SimulationViewProps> = () => {
   // Candidate policy parameters
   const [tauThreshold, setTauThreshold] = useState(0.35);
@@ -25,6 +48,8 @@ export const SimulationView: React.FC<SimulationViewProps> = () => {
 
   // Simulation execution state
   const [simulating, setSimulating] = useState(false);
+  const [loadingBaseline, setLoadingBaseline] = useState(true);
+  const [simulationError, setSimulationError] = useState<string | null>(null);
 
   // Baseline vs Candidate Comparison Data (initialized dynamically from backend)
   const [baseline, setBaseline] = useState<PolicySimulationResponse['baseline'] | null>(null);
@@ -32,37 +57,49 @@ export const SimulationView: React.FC<SimulationViewProps> = () => {
   const [candidate, setCandidate] = useState<PolicySimulationResponse['baseline'] | null>(null);
 
   // Load baseline metrics dynamically on mount
-  useEffect(() => {
-    const loadBaseline = async () => {
-      try {
+  const loadBaseline = async () => {
+    setLoadingBaseline(true);
+    setSimulationError(null);
+    try {
         const result = await apiService.simulatePolicy({
           tau_threshold: 0.35,
           hard_block_floor: 0.70,
           friction_weight: 1.0,
           sample_size: sampleSize,
         });
+        if (!isPolicySimulationResponse(result)) throw new Error('Invalid simulation response');
         setBaseline(result.baseline);
         setCandidate(result.candidate);
-      } catch (err) {
-        console.error('Failed to load backend simulation baseline', err);
-      }
-    };
+    } catch (err) {
+      console.error('Failed to load backend simulation baseline', err);
+      setBaseline(null);
+      setCandidate(null);
+      setSimulationError('Counterfactual simulation unavailable.');
+    } finally {
+      setLoadingBaseline(false);
+    }
+  };
+
+  useEffect(() => {
     loadBaseline();
   }, []);
 
   const handleRunSimulation = async () => {
     setSimulating(true);
     try {
+      setSimulationError(null);
       const result = await apiService.simulatePolicy({
         tau_threshold: tauThreshold,
         hard_block_floor: autoBlockThreshold,
         friction_weight: frictionWeight,
         sample_size: sampleSize,
       });
+      if (!isPolicySimulationResponse(result)) throw new Error('Invalid simulation response');
       setBaseline(result.baseline);
       setCandidate(result.candidate);
     } catch (err) {
       console.error('Simulation run failed', err);
+      setSimulationError('Counterfactual simulation unavailable.');
     } finally {
       setSimulating(false);
     }
@@ -75,10 +112,21 @@ export const SimulationView: React.FC<SimulationViewProps> = () => {
     setCandidate(baseline);
   };
 
-  if (!baseline || !candidate) {
+  if (loadingBaseline) {
     return (
       <div className="flex items-center justify-center h-96 text-[#667085] font-mono text-xs">
         Loading backend counterfactual policy baseline...
+      </div>
+    );
+  }
+
+  if (simulationError || !baseline || !candidate) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-3 text-[#667085] font-mono text-xs">
+        <span>{simulationError || 'Counterfactual simulation unavailable.'}</span>
+        <Button variant="outline" size="sm" onClick={loadBaseline}>
+          Retry
+        </Button>
       </div>
     );
   }
@@ -233,7 +281,11 @@ export const SimulationView: React.FC<SimulationViewProps> = () => {
         <StatCard
           title="Simulated Friction Cost"
           value={`₹${candidate.total_friction_cost_inr.toLocaleString()}`}
-          subtitle={frictionDiff > 0 ? `+${frictionDiff} INR friction` : `${frictionDiff} INR friction`}
+          subtitle={
+            frictionDiff === 0
+              ? 'No incremental friction vs Baseline'
+              : `${frictionDiff > 0 ? '+' : '-'}₹${Math.abs(frictionDiff).toLocaleString()} vs Baseline`
+          }
           badge="Friction"
           badgeVariant="warning"
           icon={<Sliders className="w-4 h-4 text-[#B7791F]" />}

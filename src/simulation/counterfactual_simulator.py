@@ -93,6 +93,54 @@ class CounterfactualSimulator:
         self.gate = transaction_gate or TransactionGate()
         self.policy_engine = policy_engine or PolicyEngine()
 
+    def simulate_case_policy(
+        self,
+        cases: list[Any],
+        tau_threshold: float,
+        hard_block_floor: float,
+        friction_weight: float,
+        forced_action: Optional[str] = None,
+    ) -> dict[str, Any]:
+        """Evaluate a policy candidate against an immutable case replay."""
+        action_counts: dict[str, int] = {}
+        prevented = 0.0
+        friction = 0.0
+        hard_negative_total = 0
+        hard_negative_blocks = 0
+        for case in cases:
+            if forced_action:
+                action = forced_action
+            elif case.decision_score >= hard_block_floor:
+                action = "FREEZE_RING" if case.member_count > 1 else "BLOCK_TRANSACTION"
+            elif case.decision_score >= tau_threshold:
+                action = "DELAY_SETTLEMENT" if case.amount_inr > 50000 else "STEP_UP_2FA"
+            else:
+                action = "ALLOW"
+            action_counts[action] = action_counts.get(action, 0) + 1
+            if case.is_hard_negative:
+                hard_negative_total += 1
+            if action in {"BLOCK_TRANSACTION", "FREEZE_RING"}:
+                if case.is_hard_negative:
+                    hard_negative_blocks += 1
+                    friction += case.amount_inr * 0.15
+                else:
+                    prevented += case.amount_inr * 0.95
+                    friction += 50.0
+            elif action == "STEP_UP_2FA":
+                friction += 12.0 * friction_weight
+            elif action == "DELAY_SETTLEMENT":
+                friction += 150.0 * friction_weight
+        interventions = sum(value for action, value in action_counts.items() if action != "ALLOW")
+        return {
+            "total_prevented_loss_inr": round(prevented),
+            "total_friction_cost_inr": round(friction),
+            "net_recovery_inr": round(prevented - friction),
+            "hard_block_fpr_pct": round(hard_negative_blocks / hard_negative_total * 100, 2) if hard_negative_total else 0.0,
+            "intervention_fpr_pct": round(interventions / len(cases) * 100, 2) if cases else 0.0,
+            "action_counts": action_counts,
+            "hard_negative_provenance": "Runtime case queue field is_hard_negative",
+        }
+
     def simulate_policy_a_point_model(
         self,
         df: pd.DataFrame,

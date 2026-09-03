@@ -46,8 +46,10 @@ from src.ops.system_state import (
     SystemControlsState,
     system_state,
 )
+from src.simulation.counterfactual_simulator import CounterfactualSimulator
 
 router = APIRouter(prefix="/api/v2/ops", tags=["Operations & Governance"])
+counterfactual_simulator = CounterfactualSimulator()
 
 
 def _evidence_digest(evidence: dict[str, Any]) -> str:
@@ -134,37 +136,9 @@ def _evaluate_policy_cases(
     friction_weight: float,
     forced_action: Optional[str] = None,
 ) -> dict[str, Any]:
-    actions: dict[str, int] = {}
-    prevented = 0.0
-    friction = 0.0
-    hard_blocks = 0
-    hard_negative_total = 0
-    hard_negative_blocks = 0
-    for case in cases:
-        action = _policy_action(case, tau, hard_block, forced_action)
-        actions[action] = actions.get(action, 0) + 1
-        if case.is_hard_negative:
-            hard_negative_total += 1
-        if action in {"BLOCK_TRANSACTION", "FREEZE_RING"}:
-            hard_blocks += 1
-            if case.is_hard_negative:
-                hard_negative_blocks += 1
-            prevented += case.amount_inr * (0.0 if case.is_hard_negative else 0.95)
-            friction += case.amount_inr * 0.15 if case.is_hard_negative else 50.0
-        elif action == "STEP_UP_2FA":
-            friction += 12.0 * friction_weight
-        elif action == "DELAY_SETTLEMENT":
-            friction += 150.0 * friction_weight
-    intervention_count = sum(count for action, count in actions.items() if action != "ALLOW")
-    return {
-        "total_prevented_loss_inr": round(prevented),
-        "total_friction_cost_inr": round(friction),
-        "net_recovery_inr": round(prevented - friction),
-        "hard_block_fpr_pct": round((hard_negative_blocks / hard_negative_total * 100) if hard_negative_total else 0.0, 2),
-        "intervention_fpr_pct": round((intervention_count / len(cases) * 100) if cases else 0.0, 2),
-        "action_counts": actions,
-        "hard_negative_provenance": "Runtime case queue field is_hard_negative",
-    }
+    return counterfactual_simulator.simulate_case_policy(
+        cases, tau, hard_block, friction_weight, forced_action
+    )
 
 
 # ---------------------------------------------------------------------------
