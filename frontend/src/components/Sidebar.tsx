@@ -206,41 +206,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ))}
       </div>
 
-      {/* Footer Invariants Card */}
+      {/* Footer status card */}
       {!isCollapsed ? (
         <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#D9DEE7] space-y-2 mt-4">
           <div className="flex items-center justify-between text-xs font-bold text-[#172033]">
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" />
-              Release Invariants
-            </span>
-            <span className="text-[11px] font-mono font-bold text-[#15803D] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-              5/5 Pass
+              Evaluation Artifacts
             </span>
           </div>
           <div className="space-y-1 text-[11px] font-mono text-[#667085]">
             <div className="flex justify-between">
-              <span>Ring Recall:</span>
-              <span className="font-semibold text-[#172033]">100% (24/24)</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Intervention FPR:</span>
-              <span className="font-semibold text-[#172033]">0.45%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Hard-Block FPR:</span>
-              <span className="font-bold text-[#15803D]">0.04%</span>
-            </div>
-            <div className="flex justify-between">
               <span>Model Weights:</span>
               <span className="font-semibold text-[#2563A6]">Frozen v1</span>
             </div>
+            <div className="text-[#667085]">Metrics available in Evaluation.</div>
           </div>
         </div>
       ) : (
         <div
           className="p-2 rounded-xl bg-[#F8FAFC] border border-[#D9DEE7] flex items-center justify-center text-[#15803D]"
-          title="Release Invariants: 5/5 Pass (100% Ring Recall, 0.04% Hard-Block FPR)"
+          title="Evaluation artifacts"
         >
           <CheckCircle2 className="w-4 h-4 text-[#15803D]" />
         </div>

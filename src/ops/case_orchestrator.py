@@ -355,24 +355,19 @@ class CaseOrchestrator:
         if not case_rec:
             raise HTTPException(status_code=404, detail=f"Case {case_id} not found.")
 
-        act = optional_action_override or case_rec.final_action
-
-        if act.startswith("BLOCK") or act.startswith("FREEZE"):
-            protected_loss = case_rec.amount_inr * (0.95 if not case_rec.is_hard_negative else 0.0)
-            friction = case_rec.amount_inr if case_rec.is_hard_negative else 50.0
-            r_cost = 50.0
-        elif act == "STEP_UP_2FA":
-            protected_loss = case_rec.amount_inr * 0.85
-            friction = 25.0
-            r_cost = 10.0
-        else:
-            protected_loss = 0.0
-            friction = 0.0
-            r_cost = 0.0
-
-        net_utility = protected_loss - friction - r_cost
-        case_manager.simulate_execution(case_id=case_id)
-
+        parameters = simulation_parameters or {}
+        tau = float(parameters.get("tau_threshold", 0.35))
+        hard_block = float(parameters.get("hard_block_floor", 0.70))
+        friction_weight = float(parameters.get("friction_weight", 1.0))
+        from src.api.routes_ops import _evaluate_policy_cases
+        metrics = _evaluate_policy_cases(
+            [case_rec], tau, hard_block, friction_weight, optional_action_override
+        )
+        act = optional_action_override or next(iter(metrics["action_counts"]), "ALLOW")
+        protected_loss = float(metrics["total_prevented_loss_inr"])
+        friction = float(metrics["total_friction_cost_inr"])
+        r_cost = 50.0 if act != "ALLOW" else 0.0
+        net_utility = float(metrics["net_recovery_inr"]) - r_cost
         return SimulationResultResponse(
             case_id=case_id,
             predicted_action=act,
@@ -388,6 +383,12 @@ class CaseOrchestrator:
             confidence=0.95,
             simulation_version="sim-v2",
             status_tag="SIMULATED",
+            parameters={
+                "tau_threshold": tau,
+                "hard_block_floor": hard_block,
+                "friction_weight": friction_weight,
+            },
+            provenance="Backend counterfactual queue evaluator; case state unchanged",
         )
 
     def get_outcome(self, case_id: str) -> OutcomeResultResponse:

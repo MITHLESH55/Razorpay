@@ -315,28 +315,29 @@ def test_full_http_case_lifecycle(client):
         txn_id = str(df.iloc[0]["transaction_id"])
         cust_id = str(df.iloc[0]["customer_id"])
 
+    legacy_headers = auth_headers("analyst_01")
+
     # 1. Score transaction
-    score_res = client.post("/risk/score", json={"transaction_id": txn_id, "customer_id": cust_id})
+    score_res = client.post("/risk/score", json={"transaction_id": txn_id, "customer_id": cust_id}, headers=legacy_headers)
     assert score_res.status_code == 200
     score_data = score_res.json()
     assert "risk_score" in score_data
 
     # 2. Investigate candidate
-    inv_res = client.post("/risk/investigate", json={"candidate_id": "CUST_1001", "max_hops": 2})
+    inv_res = client.post("/risk/investigate", json={"candidate_id": "CUST_1001", "max_hops": 2}, headers=legacy_headers)
     assert inv_res.status_code == 200
     inv_data = inv_res.json()
     case_id = inv_data["case_id"]
-
     # 3. Retrieve case details
-    c_res = client.get(f"/risk/cases/{case_id}")
+    c_res = client.get(f"/risk/cases/{case_id}", headers=legacy_headers)
     assert c_res.status_code == 200
 
     # 4. Retrieve graph
-    g_res = client.get(f"/risk/cases/{case_id}/graph")
+    g_res = client.get(f"/risk/cases/{case_id}/graph", headers=legacy_headers)
     assert g_res.status_code == 200
 
     # 5. Retrieve evidence
-    e_res = client.get(f"/risk/cases/{case_id}/evidence")
+    e_res = client.get(f"/risk/cases/{case_id}/evidence", headers=legacy_headers)
     assert e_res.status_code == 200
 
     # 6. Verification check

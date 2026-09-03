@@ -23,7 +23,7 @@ export interface AuthContextType {
   role: UserRole | null;
   session: AuthSession | null;
   error: string | null;
-  login: (usernameOrEmail: string, password?: string, role?: UserRole, rememberMe?: boolean) => Promise<AuthSession>;
+  login: (usernameOrEmail: string, password: string, rememberMe?: boolean) => Promise<AuthSession>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -99,8 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Login action
   const login = async (
     usernameOrEmail: string,
-    password?: string,
-    role?: UserRole,
+    password: string,
     rememberMe = true
   ): Promise<AuthSession> => {
     setStatus('AUTHENTICATING');
@@ -109,7 +108,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const resp = await authApi.login({
         username_or_email: usernameOrEmail,
         password,
-        role,
         remember_me: rememberMe,
       });
 

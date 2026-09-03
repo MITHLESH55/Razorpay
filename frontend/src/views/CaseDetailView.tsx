@@ -28,6 +28,7 @@ interface CaseDetailViewProps {
 }
 
 export const CaseDetailView: React.FC<CaseDetailViewProps> = ({ caseId, user, onBack }) => {
+  const [activeCaseId, setActiveCaseId] = useState(caseId);
   const [data, setData] = useState<CaseDetailResponse | null>(null);
   const [auditEvents, setAuditEvents] = useState<AuditRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,8 +44,8 @@ export const CaseDetailView: React.FC<CaseDetailViewProps> = ({ caseId, user, on
     setLoading(true);
     try {
       const [detailData, auditData] = await Promise.all([
-        apiService.getCaseDetail(caseId),
-        apiService.getAuditTrail(caseId),
+        apiService.getCaseDetail(activeCaseId),
+        apiService.getAuditTrail(activeCaseId),
       ]);
       setData(detailData);
       setAuditEvents(auditData);
@@ -56,27 +57,31 @@ export const CaseDetailView: React.FC<CaseDetailViewProps> = ({ caseId, user, on
   };
 
   useEffect(() => {
-    loadCase();
+    setActiveCaseId(caseId);
   }, [caseId]);
 
+  useEffect(() => {
+    loadCase();
+  }, [activeCaseId]);
+
   const handleApprove = async (notes: string) => {
-    await apiService.approveCase(caseId, notes);
+    await apiService.approveCase(activeCaseId, notes);
     await loadCase();
   };
 
   const handleEdit = async (newAction: string, reason: string) => {
-    await apiService.editCaseAction(caseId, newAction, reason);
+    await apiService.editCaseAction(activeCaseId, newAction, reason);
     await loadCase();
   };
 
   const handleReject = async (reason: string) => {
-    await apiService.rejectCase(caseId, reason);
+    await apiService.rejectCase(activeCaseId, reason);
     await loadCase();
   };
 
   const handleSubmitFeedback = async (fData: any) => {
     await apiService.submitFeedback({
-      case_id: caseId,
+      case_id: activeCaseId,
       transaction_id: data?.case.transaction_id || '',
       adjudication: fData.adjudication,
       notes: fData.notes,
@@ -89,7 +94,7 @@ export const CaseDetailView: React.FC<CaseDetailViewProps> = ({ caseId, user, on
   const handleRunSimulation = async () => {
     setSimLoading(true);
     try {
-      const res = await apiService.simulateExecution(caseId);
+      const res = await apiService.simulateExecution(activeCaseId);
       setSimResult(res);
       await loadCase();
     } catch (err) {
@@ -128,11 +133,11 @@ export const CaseDetailView: React.FC<CaseDetailViewProps> = ({ caseId, user, on
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Quick Case Switcher for Demonstration */}
-          <span className="text-[11px] font-mono text-[#98A2B3]">Demo Evaluation Cases:</span>
+          <span className="text-[11px] font-mono text-[#98A2B3]">Frozen Evaluation Cases:</span>
           <button
-            onClick={() => apiService.getCaseDetail('CASE-RING-A-01').then(() => loadCase())}
+            onClick={() => setActiveCaseId('CASE-RING-A-01')}
             className={`px-2.5 py-1 rounded text-xs font-mono border transition-all ${
-              caseId === 'CASE-RING-A-01'
+              activeCaseId === 'CASE-RING-A-01'
                 ? 'bg-red-50 text-[#C53030] border-[#C53030] font-bold'
                 : 'bg-white text-[#667085] border-[#D9DEE7] hover:bg-[#F8FAFC]'
             }`}
@@ -140,9 +145,9 @@ export const CaseDetailView: React.FC<CaseDetailViewProps> = ({ caseId, user, on
             Pattern A
           </button>
           <button
-            onClick={() => apiService.getCaseDetail('CASE-RING-B-02').then(() => loadCase())}
+            onClick={() => setActiveCaseId('CASE-RING-B-02')}
             className={`px-2.5 py-1 rounded text-xs font-mono border transition-all ${
-              caseId === 'CASE-RING-B-02'
+              activeCaseId === 'CASE-RING-B-02'
                 ? 'bg-purple-50 text-purple-700 border-purple-400 font-bold'
                 : 'bg-white text-[#667085] border-[#D9DEE7] hover:bg-[#F8FAFC]'
             }`}
@@ -150,9 +155,9 @@ export const CaseDetailView: React.FC<CaseDetailViewProps> = ({ caseId, user, on
             Pattern B
           </button>
           <button
-            onClick={() => apiService.getCaseDetail('CASE-HARDNEG-04').then(() => loadCase())}
+            onClick={() => setActiveCaseId('CASE-HARDNEG-04')}
             className={`px-2.5 py-1 rounded text-xs font-mono border transition-all ${
-              caseId === 'CASE-HARDNEG-04'
+              activeCaseId === 'CASE-HARDNEG-04'
                 ? 'bg-emerald-50 text-[#15803D] border-[#15803D] font-bold'
                 : 'bg-white text-[#667085] border-[#D9DEE7] hover:bg-[#F8FAFC]'
             }`}

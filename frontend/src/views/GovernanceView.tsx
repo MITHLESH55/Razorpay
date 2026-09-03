@@ -57,6 +57,9 @@ export const GovernanceView: React.FC<GovernanceViewProps> = ({ user, onControls
   }, []);
 
   const isAdmin = user.role === 'ADMIN';
+  const verification = manifest?.artifact_verification || {};
+  const verifiedCount = Object.values(verification).filter((item) => item.status === 'VERIFIED').length;
+  const verificationCount = Object.keys(verification).length;
 
   const handleUpdateControls = async (updates: {
     shadow_mode?: boolean;
@@ -270,14 +273,14 @@ export const GovernanceView: React.FC<GovernanceViewProps> = ({ user, onControls
         </Card>
       </div>
 
-      {/* Cryptographic Release Manifest (9 Authoritative Hashes) */}
+      {/* Cryptographic Release Manifest */}
       <Card
         title="Cryptographic Artifact & Model Release Manifest"
         subtitle="Authoritative Release Hash Signatures (SHA-256)"
         icon={<FileCheck2 className="w-5 h-5 text-[#183B67]" />}
         headerRight={
           <Badge variant="success" size="sm" icon={<CheckCircle2 className="w-3 h-3 text-[#15803D]" />}>
-            9/9 Hashes Verified
+            {verifiedCount}/{verificationCount} Hashes Verified
           </Badge>
         }
       >
@@ -299,8 +302,12 @@ export const GovernanceView: React.FC<GovernanceViewProps> = ({ user, onControls
                       {hash}
                     </td>
                     <td className="p-3 text-right whitespace-nowrap">
-                      <Badge variant="success" size="sm" icon={<CheckCircle2 className="w-3 h-3 text-[#15803D]" />}>
-                        VERIFIED
+                      <Badge
+                        variant={verification[component]?.status === 'VERIFIED' ? 'success' : 'critical'}
+                        size="sm"
+                        icon={<CheckCircle2 className="w-3 h-3" />}
+                      >
+                        {verification[component]?.status || 'UNAVAILABLE'}
                       </Badge>
                     </td>
                   </tr>
@@ -317,7 +324,7 @@ export const GovernanceView: React.FC<GovernanceViewProps> = ({ user, onControls
           subtitle={`Sign-Off Date: ${manifest.sign_off.date}`}
           icon={<Lock className="w-4 h-4 text-[#183B67]" />}
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
             <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#D9DEE7]">
               <span className="text-[#98A2B3] text-[10px] block">Lead Evaluator</span>
               <span className="font-bold text-[#172033]">{manifest.sign_off.lead} ({manifest.sign_off.role})</span>
@@ -325,10 +332,6 @@ export const GovernanceView: React.FC<GovernanceViewProps> = ({ user, onControls
             <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#D9DEE7]">
               <span className="text-[#98A2B3] text-[10px] block">Release Status</span>
               <span className="font-bold text-[#15803D]">{manifest.sign_off.status}</span>
-            </div>
-            <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#D9DEE7]">
-              <span className="text-[#98A2B3] text-[10px] block">Automated Tests</span>
-              <span className="font-bold text-[#15803D]">237/237 Passing</span>
             </div>
           </div>
         </Card>

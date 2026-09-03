@@ -71,7 +71,7 @@ export const DriftView: React.FC<DriftViewProps> = () => {
               FEATURE DRIFT & STABILITY
             </Badge>
             <span className="text-xs font-mono text-[#667085]">
-              Baseline: Held-Out Test (28,591 txns) &bull; Sliding Window: Active Replay
+              Baseline: Synthetic Reference Distribution (RandomState 42, n=200) &bull; Sliding Window: Active Replay
             </span>
           </div>
           <h1 className="text-xl font-bold tracking-tight text-[#172033] mt-1">
@@ -100,8 +100,8 @@ export const DriftView: React.FC<DriftViewProps> = () => {
         <StatCard
           title="Overall Status"
           value={drift.overall_status === 'NO_DRIFT' ? 'STABLE' : drift.overall_status}
-          subtitle="Distribution Stability Confirmed"
-          badge={drift.overall_status === 'NO_DRIFT' ? 'PSI < 0.10' : 'Alert'}
+          subtitle={drift.overall_status === 'NO_CURRENT_WINDOW' ? 'Awaiting current observations' : 'Distribution Stability Confirmed'}
+          badge={drift.overall_status === 'NO_DRIFT' ? 'PSI < 0.10' : 'Review'}
           badgeVariant={drift.overall_status === 'NO_DRIFT' ? 'success' : 'warning'}
           icon={<Activity className="w-4 h-4 text-[#15803D]" />}
         />

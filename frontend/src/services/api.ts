@@ -17,7 +17,6 @@ import {
   SystemControlsState,
   SystemDriftSummary,
   UserContext,
-  UserRole,
 } from '../types';
 
 import {
@@ -88,13 +87,11 @@ class RiskOrbitApiService {
 
   async login(
     usernameOrEmail: string,
-    password?: string,
-    role?: UserRole
+    password: string
   ): Promise<AuthSession> {
     const session = await authApi.login({
       username_or_email: usernameOrEmail,
-      ...(password ? { password } : {}),
-      role,
+      password,
     });
     this.setAuthSession(session);
     return session;
@@ -172,6 +169,15 @@ class RiskOrbitApiService {
       simulated_action: action,
       override_policy_parameters: overrideParams,
     });
+  }
+
+  async simulatePolicy(parameters: {
+    tau_threshold: number;
+    hard_block_floor: number;
+    friction_weight: number;
+    sample_size: number;
+  }): Promise<any> {
+    return simulationApi.simulatePolicy(parameters);
   }
 
   async submitFeedback(data: {

@@ -239,6 +239,8 @@ class SimulationResultResponse(BaseModel):
     confidence: float
     simulation_version: str = "sim-v2"
     status_tag: str = "SIMULATED"
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    provenance: str = ""
 
 
 # ---------------------------------------------------------------------------

@@ -42,6 +42,7 @@ class SystemControlsState(BaseModel):
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
     degradation_reason: Optional[str] = None
+    model_ready: bool = False
 
 
 class SystemStateManager:
@@ -54,6 +55,17 @@ class SystemStateManager:
     def get_state(self) -> SystemControlsState:
         """Retrieve current system controls state."""
         with self._lock:
+            return self._state.model_copy()
+
+    def set_model_ready(self, ready: bool, reason: Optional[str] = None) -> SystemControlsState:
+        with self._lock:
+            self._state.model_ready = ready
+            if not ready:
+                self._state.health_status = SystemHealthStatus.UNAVAILABLE
+                self._state.degradation_reason = reason or "Required scoring model is unavailable."
+            elif self._state.health_status == SystemHealthStatus.UNAVAILABLE:
+                self._state.health_status = SystemHealthStatus.HEALTHY
+                self._state.degradation_reason = None
             return self._state.model_copy()
 
     def update_controls(

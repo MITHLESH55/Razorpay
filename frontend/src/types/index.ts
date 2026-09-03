@@ -111,6 +111,9 @@ export interface EvidenceItem {
   hash_sha256: string;
   description: string;
   features: Record<string, any>;
+  source_type?: string;
+  source_ids?: string[];
+  derivation?: string;
 }
 
 export interface DecisionTrace {
@@ -211,7 +214,7 @@ export interface FeedbackRecord {
 export interface FeatureDriftReport {
   feature_name: string;
   psi_score: number;
-  status: 'NO_DRIFT' | 'MODERATE_DRIFT' | 'SIGNIFICANT_DRIFT';
+  status: 'NO_DRIFT' | 'MODERATE_DRIFT' | 'SIGNIFICANT_DRIFT' | 'NO_CURRENT_WINDOW';
   baseline_mean: number;
   current_mean: number;
   baseline_std: number;
@@ -226,7 +229,7 @@ export interface FeatureDriftReport {
 }
 
 export interface SystemDriftSummary {
-  overall_status: 'NO_DRIFT' | 'MODERATE_DRIFT' | 'SIGNIFICANT_DRIFT';
+  overall_status: 'NO_DRIFT' | 'MODERATE_DRIFT' | 'SIGNIFICANT_DRIFT' | 'NO_CURRENT_WINDOW';
   max_psi: number;
   evaluated_features_count: number;
   drifting_features_count: number;
@@ -429,6 +432,12 @@ export interface ManifestData {
     status: string;
   };
   cryptographic_hashes?: Record<string, string>;
+  artifact_verification?: Record<string, {
+    status: 'VERIFIED' | 'MISMATCH' | 'MISSING' | 'UNAVAILABLE';
+    path?: string | null;
+    computed_sha256?: string;
+    expected_sha256?: string;
+  }>;
   final_heldout_metrics_summary?: Record<string, any>;
   [key: string]: any;
 }

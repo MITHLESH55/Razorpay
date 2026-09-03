@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Sliders,
   Play,
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { UserContext } from '../types';
 import { apiService } from '../services/api';
+import { PolicySimulationResponse } from '../api/simulation';
 import { Badge, Button, Card, StatCard } from '../components/ui';
 
 interface SimulationViewProps {
@@ -25,99 +26,41 @@ export const SimulationView: React.FC<SimulationViewProps> = () => {
   // Simulation execution state
   const [simulating, setSimulating] = useState(false);
 
-  // Baseline vs Candidate Comparison Data
-  const [baseline] = useState<{
-    total_prevented_loss_inr: number;
-    total_friction_cost_inr: number;
-    net_recovery_inr: number;
-    hard_block_fpr_pct: number;
-    intervention_fpr_pct: number;
-    action_counts: Record<string, number>;
-  }>({
-    total_prevented_loss_inr: 4850000,
-    total_friction_cost_inr: 42000,
-    net_recovery_inr: 4808000,
-    hard_block_fpr_pct: 0.04,
-    intervention_fpr_pct: 0.45,
-    action_counts: {
-      ALLOW: 92,
-      STEP_UP_2FA: 4,
-      DELAY_SETTLEMENT: 1,
-      BLOCK_TRANSACTION: 2,
-      FREEZE_RING: 1,
-    },
-  });
+  // Baseline vs Candidate Comparison Data (initialized dynamically from backend)
+  const [baseline, setBaseline] = useState<PolicySimulationResponse['baseline'] | null>(null);
 
-  const [candidate, setCandidate] = useState<{
-    total_prevented_loss_inr: number;
-    total_friction_cost_inr: number;
-    net_recovery_inr: number;
-    hard_block_fpr_pct: number;
-    intervention_fpr_pct: number;
-    action_counts: Record<string, number>;
-  }>({
-    total_prevented_loss_inr: 4850000,
-    total_friction_cost_inr: 42000,
-    net_recovery_inr: 4808000,
-    hard_block_fpr_pct: 0.04,
-    intervention_fpr_pct: 0.45,
-    action_counts: {
-      ALLOW: 92,
-      STEP_UP_2FA: 4,
-      DELAY_SETTLEMENT: 1,
-      BLOCK_TRANSACTION: 2,
-      FREEZE_RING: 1,
-    },
-  });
+  const [candidate, setCandidate] = useState<PolicySimulationResponse['baseline'] | null>(null);
+
+  // Load baseline metrics dynamically on mount
+  useEffect(() => {
+    const loadBaseline = async () => {
+      try {
+        const result = await apiService.simulatePolicy({
+          tau_threshold: 0.35,
+          hard_block_floor: 0.70,
+          friction_weight: 1.0,
+          sample_size: sampleSize,
+        });
+        setBaseline(result.baseline);
+        setCandidate(result.candidate);
+      } catch (err) {
+        console.error('Failed to load backend simulation baseline', err);
+      }
+    };
+    loadBaseline();
+  }, []);
 
   const handleRunSimulation = async () => {
     setSimulating(true);
     try {
-      // Run batch simulation across queue
-      const queue = await apiService.getQueue({ limit: sampleSize });
-      let simPrevented = 0;
-      let simFriction = 0;
-      const actions: Record<string, number> = {
-        ALLOW: 0,
-        STEP_UP_2FA: 0,
-        DELAY_SETTLEMENT: 0,
-        MANUAL_REVIEW: 0,
-        BLOCK_TRANSACTION: 0,
-        FREEZE_RING: 0,
-      };
-
-      for (const item of queue) {
-        // Evaluate candidate policy counterfactuals
-        let act = 'ALLOW';
-        if (item.decision_score >= autoBlockThreshold) {
-          act = item.member_count > 1 ? 'FREEZE_RING' : 'BLOCK_TRANSACTION';
-        } else if (item.decision_score >= tauThreshold) {
-          act = item.amount_inr > 50000 ? 'DELAY_SETTLEMENT' : 'STEP_UP_2FA';
-        }
-
-        actions[act] = (actions[act] || 0) + 1;
-
-        if (act === 'BLOCK_TRANSACTION' || act === 'FREEZE_RING') {
-          simPrevented += item.amount_inr * (item.is_hard_negative ? 0 : 0.95);
-          simFriction += item.is_hard_negative ? item.amount_inr * 0.15 : 50;
-        } else if (act === 'STEP_UP_2FA') {
-          simFriction += 12 * frictionWeight;
-        } else if (act === 'DELAY_SETTLEMENT') {
-          simFriction += 150 * frictionWeight;
-        }
-      }
-
-      // Calculate candidate metrics
-      const candidateResult = {
-        total_prevented_loss_inr: Math.round(simPrevented),
-        total_friction_cost_inr: Math.round(simFriction),
-        net_recovery_inr: Math.round(simPrevented - simFriction),
-        hard_block_fpr_pct: tauThreshold < 0.2 ? 0.12 : 0.04,
-        intervention_fpr_pct: Number((0.45 * (0.35 / tauThreshold)).toFixed(2)),
-        action_counts: actions,
-      };
-
-      setCandidate(candidateResult);
+      const result = await apiService.simulatePolicy({
+        tau_threshold: tauThreshold,
+        hard_block_floor: autoBlockThreshold,
+        friction_weight: frictionWeight,
+        sample_size: sampleSize,
+      });
+      setBaseline(result.baseline);
+      setCandidate(result.candidate);
     } catch (err) {
       console.error('Simulation run failed', err);
     } finally {
@@ -131,6 +74,14 @@ export const SimulationView: React.FC<SimulationViewProps> = () => {
     setAutoBlockThreshold(0.70);
     setCandidate(baseline);
   };
+
+  if (!baseline || !candidate) {
+    return (
+      <div className="flex items-center justify-center h-96 text-[#667085] font-mono text-xs">
+        Loading backend counterfactual policy baseline...
+      </div>
+    );
+  }
 
   const netDiff = candidate.net_recovery_inr - baseline.net_recovery_inr;
   const frictionDiff = candidate.total_friction_cost_inr - baseline.total_friction_cost_inr;

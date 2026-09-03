@@ -4,9 +4,9 @@ WORKDIR /app
 
 # Install system dependencies if needed
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+  curl \
+  build-essential \
+  && rm -rf /var/lib/apt/lists/*
 
 # Install Python requirements
 COPY requirements.txt .
@@ -17,6 +17,7 @@ COPY src/ ./src/
 COPY configs/ ./configs/
 COPY artifacts/ ./artifacts/
 COPY reports/ ./reports/
+COPY data/raw/ ./data/raw/
 COPY data/splits/ ./data/splits/
 COPY scripts/ ./scripts/
 
@@ -24,8 +25,9 @@ EXPOSE 8000
 
 ENV PYTHONUNBUFFERED=1
 ENV ENVIRONMENT=production
+ENV RISKORBIT_ENV=production
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.api.app_v2:app", "--host", "0.0.0.0", "--port", "8000"]

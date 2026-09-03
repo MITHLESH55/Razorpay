@@ -7,6 +7,7 @@ investigations, human approvals, overrides, simulations, and feedback submission
 from __future__ import annotations
 
 import json
+import logging
 import threading
 import uuid
 from datetime import datetime, timezone
@@ -14,6 +15,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, List, Optional
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 
 class AuditEventType(str, Enum):
@@ -86,8 +89,8 @@ class AuditTrailManager:
         )
 
         with self._lock:
-            self._records.append(entry)
             self._persist_entry(entry)
+            self._records.append(entry)
 
         return entry
 
@@ -97,8 +100,9 @@ class AuditTrailManager:
             self._persistence_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self._persistence_path, "a", encoding="utf-8") as f:
                 f.write(entry.model_dump_json() + "\n")
-        except Exception:
-            pass  # In-memory buffer retains record
+        except Exception as exc:
+            logger.error("Audit persistence failed for %s: %s", entry.event_id, exc)
+            raise RuntimeError("Audit persistence failed; mutation was not recorded") from exc
 
     def get_case_audit(self, case_id: str) -> list[AuditRecord]:
         """Retrieve chronological audit entries for a specific case."""

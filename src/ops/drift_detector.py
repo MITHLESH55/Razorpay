@@ -7,6 +7,7 @@ action rates) against frozen baseline reference distributions using Population S
 from __future__ import annotations
 
 import math
+import csv
 import threading
 from datetime import datetime, timezone
 from enum import Enum
@@ -20,6 +21,7 @@ class DriftStatus(str, Enum):
     NO_DRIFT = "NO_DRIFT"              # PSI < 0.10
     MODERATE_DRIFT = "MODERATE_DRIFT"  # 0.10 <= PSI < 0.25
     SIGNIFICANT_DRIFT = "SIGNIFICANT_DRIFT"  # PSI >= 0.25
+    NO_CURRENT_WINDOW = "NO_CURRENT_WINDOW"
 
 
 class FeatureDriftReport(BaseModel):
@@ -94,36 +96,31 @@ class DriftDetector:
 
     def __init__(self):
         self._lock = threading.Lock()
-        # Frozen baseline statistics computed from 28,591 held-out test distribution
-        self._baselines: dict[str, dict[str, Any]] = {
-            "amount_inr": {
-                "mean": 14250.0,
-                "std": 18500.0,
-                "sample": list(np.random.RandomState(42).lognormal(mean=9.2, sigma=1.1, size=200)),
-            },
-            "decision_score": {
-                "mean": 0.125,
-                "std": 0.210,
-                "sample": list(np.random.RandomState(42).beta(a=0.5, b=3.5, size=200)),
-            },
-            "evidence_strength": {
-                "mean": 0.180,
-                "std": 0.240,
-                "sample": list(np.random.RandomState(42).beta(a=0.6, b=2.8, size=200)),
-            },
-            "member_count": {
-                "mean": 1.35,
-                "std": 1.80,
-                "sample": list(np.random.RandomState(42).geometric(p=0.7, size=200)),
-            },
-        }
+        self._baselines = self._load_heldout_baselines()
 
         # Current live sliding window buffers
         self._current_buffers: dict[str, list[float]] = {
-            "amount_inr": [],
-            "decision_score": [],
-            "evidence_strength": [],
-            "member_count": [],
+            feature: [] for feature in self._baselines
+        }
+
+    @staticmethod
+    def _load_heldout_baselines() -> dict[str, dict[str, Any]]:
+        path = "data/splits/heldout_test.csv"
+        samples: dict[str, list[float]] = {"amount_inr": []}
+        try:
+            with open(path, newline="", encoding="utf-8") as handle:
+                for row in csv.DictReader(handle):
+                    samples["amount_inr"].append(float(row["amount"]))
+        except (OSError, KeyError, TypeError, ValueError):
+            return {}
+        return {
+            feature: {
+                "mean": float(np.mean(values)),
+                "std": float(np.std(values)),
+                "sample": values,
+            }
+            for feature, values in samples.items()
+            if values
         }
 
     def record_observation(
@@ -135,10 +132,12 @@ class DriftDetector:
     ) -> None:
         """Record a single processed transaction into current window."""
         with self._lock:
-            self._current_buffers["amount_inr"].append(float(amount_inr))
-            self._current_buffers["decision_score"].append(float(decision_score))
-            self._current_buffers["evidence_strength"].append(float(evidence_strength))
-            self._current_buffers["member_count"].append(float(member_count))
+            observations = {
+                "amount_inr": amount_inr,
+            }
+            for feature, value in observations.items():
+                if feature in self._current_buffers:
+                    self._current_buffers[feature].append(float(value))
 
             # Maintain sliding window of 500 samples
             for k in self._current_buffers:
@@ -156,9 +155,21 @@ class DriftDetector:
                 curr_samples = self._current_buffers[feature]
                 base_samples = base_info["sample"]
 
-                # If current window has fewer samples, supplement with baseline slight variance for stable demo
-                if len(curr_samples) < 30:
-                    curr_samples = list(base_samples)
+                if len(curr_samples) < 5:
+                    reports.append(
+                        FeatureDriftReport(
+                            feature_name=feature,
+                            psi_score=0.0,
+                            status=DriftStatus.NO_CURRENT_WINDOW,
+                            baseline_mean=round(float(base_info["mean"]), 2),
+                            current_mean=0.0,
+                            baseline_std=round(float(base_info["std"]), 2),
+                            current_std=0.0,
+                            drift_direction="INSUFFICIENT_DATA",
+                            bins_summary=[],
+                        )
+                    )
+                    continue
 
                 psi_score, bins = compute_psi(base_samples, curr_samples)
                 max_psi = max(max_psi, psi_score)
@@ -198,7 +209,10 @@ class DriftDetector:
                     )
                 )
 
-            if max_psi >= 0.25:
+            if not any(self._current_buffers.values()):
+                overall = DriftStatus.NO_CURRENT_WINDOW
+                recommendation = "NO_CURRENT_WINDOW: Collect at least 5 current observations per feature before evaluating drift."
+            elif max_psi >= 0.25:
                 overall = DriftStatus.SIGNIFICANT_DRIFT
                 recommendation = "ALERT: Significant distribution drift detected. Review incoming transaction sources and consider offline review."
             elif max_psi >= 0.10:

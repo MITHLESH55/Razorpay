@@ -88,15 +88,14 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onSelectCase }) => {
               OPERATIONAL STATUS: ACTIVE
             </Badge>
             <span className="text-xs font-mono text-[#667085]">
-              Environment: <strong className="text-[#172033]">LIVE LOCAL BACKEND</strong>
+              Environment: <strong className="text-[#172033]">LOCAL BACKEND</strong>
             </span>
           </div>
           <h1 className="text-xl font-bold tracking-tight text-[#172033]">
             Executive Command Center & Observability
           </h1>
           <p className="text-xs text-[#667085] max-w-3xl">
-            Real-time bounded risk governance, human approval gate, graph relationship telemetry,
-            and frozen model release monitoring.
+            Bounded risk governance, human approval gate, graph telemetry, and frozen model release monitoring.
           </p>
         </div>
 
@@ -150,8 +149,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onSelectCase }) => {
         <StatCard
           title="Hard-Block FPR"
           value={kpis.held_out_metrics.hard_block_fpr}
-          subtitle="Zero innocent customer friction on 13,373 rows"
-          badge="5/5 Invariant Pass"
+          subtitle="Artifact-backed evaluation metric"
+          badge="Held-Out Evaluation"
           badgeVariant="success"
           icon={<CheckCircle2 className="w-4 h-4 text-[#15803D]" />}
         />
@@ -165,7 +164,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onSelectCase }) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onSelectCase(recentCases[0]?.case_id || 'CASE-RING-A-01')}
+            onClick={() => recentCases[0] && onSelectCase(recentCases[0].case_id)}
+            disabled={!recentCases.length}
           >
             Open Full Queue Workbench &rarr;
           </Button>
@@ -240,84 +240,36 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onSelectCase }) => {
       {/* Flagship Demonstration Scenarios */}
       <Card
         title="Flagship Demonstration Scenarios"
-        subtitle="Inspect verified 2-hop subgraph topology and source-grounded evidence records"
+        subtitle="Inspect backend-served case topology and evidence records"
         badge={<Badge variant="navy">Evaluation Cases</Badge>}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {/* Pattern A */}
-          <div
-            onClick={() => onSelectCase('CASE-RING-A-01')}
-            className="p-4 rounded-xl border border-[#D9DEE7] bg-[#F8FAFC] hover:bg-white hover:border-[#2563A6] hover:shadow-md cursor-pointer transition-all space-y-2.5 group flex flex-col justify-between"
-          >
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Badge variant="critical" size="sm">
-                  PATTERN A: DEVICE FARM
-                </Badge>
-                <span className="text-xs font-mono text-[#667085] group-hover:text-[#2563A6] flex items-center gap-1">
-                  Inspect <ArrowUpRight className="w-3.5 h-3.5" />
-                </span>
+          {recentCases.slice(0, 3).map((scenario) => (
+            <div
+              key={scenario.case_id}
+              onClick={() => onSelectCase(scenario.case_id)}
+              className="p-4 rounded-xl border border-[#D9DEE7] bg-[#F8FAFC] hover:bg-white hover:border-[#2563A6] hover:shadow-md cursor-pointer transition-all space-y-2.5 group flex flex-col justify-between"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Badge variant={scenario.priority === 'CRITICAL' ? 'critical' : 'warning'} size="sm">
+                    {scenario.pattern_type || scenario.priority}
+                  </Badge>
+                  <span className="text-xs font-mono text-[#667085] group-hover:text-[#2563A6] flex items-center gap-1">
+                    Inspect <ArrowUpRight className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+                <h4 className="text-xs font-bold text-[#172033]">{scenario.case_id}</h4>
+                <p className="text-[11px] text-[#667085] leading-relaxed line-clamp-2">
+                  {scenario.action_reason || 'Backend-derived risk case awaiting investigation.'}
+                </p>
               </div>
-              <h4 className="text-xs font-bold text-[#172033]">Android Emulator Device Farm Collusion</h4>
-              <p className="text-[11px] text-[#667085] leading-relaxed line-clamp-2">
-                32 synthetic accounts routing rapid micropayments through a rooted Android emulator ID.
-              </p>
-            </div>
-            <div className="flex justify-between items-center text-[10.5px] font-mono text-[#667085] pt-2 border-t border-[#E2E8F0]">
-              <span>Score: <strong className="text-[#172033]">0.895</strong></span>
-              <span className="text-[#C53030] font-bold whitespace-nowrap">BLOCK_TRANSACTION</span>
-            </div>
-          </div>
-
-          {/* Pattern B */}
-          <div
-            onClick={() => onSelectCase('CASE-RING-B-02')}
-            className="p-4 rounded-xl border border-[#D9DEE7] bg-[#F8FAFC] hover:bg-white hover:border-[#2563A6] hover:shadow-md cursor-pointer transition-all space-y-2.5 group flex flex-col justify-between"
-          >
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Badge variant="purple" size="sm">
-                  PATTERN B: CIRCULAR
-                </Badge>
-                <span className="text-xs font-mono text-[#667085] group-hover:text-[#2563A6] flex items-center gap-1">
-                  Inspect <ArrowUpRight className="w-3.5 h-3.5" />
-                </span>
+              <div className="flex justify-between items-center text-[10.5px] font-mono text-[#667085] pt-2 border-t border-[#E2E8F0]">
+                <span>Score: <strong className="text-[#172033]">{scenario.decision_score.toFixed(3)}</strong></span>
+                <span className="text-[#C53030] font-bold whitespace-nowrap">{scenario.recommended_action}</span>
               </div>
-              <h4 className="text-xs font-bold text-[#172033]">Circular Layering Syndicate</h4>
-              <p className="text-[11px] text-[#667085] leading-relaxed line-clamp-2">
-                4-hop circular UPI fund layering chain with 96.9% volume retention across multiple nodes.
-              </p>
             </div>
-            <div className="flex justify-between items-center text-[10.5px] font-mono text-[#667085] pt-2 border-t border-[#E2E8F0]">
-              <span>Score: <strong className="text-[#172033]">0.942</strong></span>
-              <span className="text-[#C53030] font-bold whitespace-nowrap">FREEZE_RING</span>
-            </div>
-          </div>
-
-          {/* Pattern C / Hard Negative */}
-          <div
-            onClick={() => onSelectCase('CASE-HARDNEG-04')}
-            className="p-4 rounded-xl border border-[#D9DEE7] bg-[#F8FAFC] hover:bg-white hover:border-[#2563A6] hover:shadow-md cursor-pointer transition-all space-y-2.5 group flex flex-col justify-between md:col-span-2 xl:col-span-1"
-          >
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Badge variant="success" size="sm">
-                  HARD NEGATIVE
-                </Badge>
-                <span className="text-xs font-mono text-[#667085] group-hover:text-[#2563A6] flex items-center gap-1">
-                  Inspect <ArrowUpRight className="w-3.5 h-3.5" />
-                </span>
-              </div>
-              <h4 className="text-xs font-bold text-[#172033]">Festive Corporate Spend Spike</h4>
-              <p className="text-[11px] text-[#667085] leading-relaxed line-clamp-2">
-                ₹89k legitimate enterprise purchase. Bounded 2FA step-up without destructive block.
-              </p>
-            </div>
-            <div className="flex justify-between items-center text-[10.5px] font-mono text-[#667085] pt-2 border-t border-[#E2E8F0]">
-              <span>Score: <strong className="text-[#172033]">0.284</strong></span>
-              <span className="text-[#2563A6] font-bold whitespace-nowrap">STEP_UP_2FA (0.04% FPR)</span>
-            </div>
-          </div>
+          ))}
         </div>
       </Card>
     </div>

@@ -2,12 +2,11 @@
  * RiskOrbit — Authentication API Module
  */
 import { apiRequest, clearAuthToken } from './client';
-import { AuthSession, DemoUserRecord, GoogleOAuthConfig, UserContext, UserRole } from '../types';
+import { AuthSession, DemoUserRecord, GoogleOAuthConfig, UserContext } from '../types';
 
 export interface LoginParams {
   username_or_email: string;
-  password?: string | null;
-  role?: UserRole;
+  password: string;
   remember_me?: boolean;
 }
 
@@ -34,17 +33,14 @@ export interface SessionValidateResponse {
 
 export const authApi = {
   /**
-   * Authenticate with email/analyst ID or pre-seeded demo user identifier
+  * Authenticate with email or analyst ID.
    */
   async login(params: LoginParams): Promise<AuthSession> {
     const payload: Record<string, any> = {
       username_or_email: params.username_or_email.trim(),
-      password: params.password && params.password.trim() ? params.password.trim() : null,
+      password: params.password,
       remember_me: params.remember_me !== false,
     };
-    if (params.role) {
-      payload.role = params.role;
-    }
 
     const data = await apiRequest<LoginResponse>('/api/v2/ops/auth/login', {
       method: 'POST',

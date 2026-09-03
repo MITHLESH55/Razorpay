@@ -51,10 +51,13 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({ evidence }) => {
               <span className="font-mono text-xs font-bold text-[#183B67]">
                 {evidence.evidence_id}
               </span>
-              {evidence.verified && (
+              {evidence.verified && evidence.source_type !== 'FROZEN_EVALUATION_FIXTURE' && (
                 <Badge variant="success" size="sm" icon={<CheckCircle2 className="w-3 h-3 text-[#15803D]" />}>
                   Grounded & Verified
                 </Badge>
+              )}
+              {evidence.source_type === 'FROZEN_EVALUATION_FIXTURE' && (
+                <Badge variant="info" size="sm">Frozen Evaluation Evidence</Badge>
               )}
             </div>
             <h4 className="text-xs font-bold text-[#172033] mt-0.5">{evidence.title}</h4>

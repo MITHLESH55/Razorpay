@@ -24,6 +24,27 @@ export interface SimulationResultResponse {
   blast_radius_delta?: string;
 }
 
+export interface PolicySimulationResponse {
+  baseline: {
+    total_prevented_loss_inr: number;
+    total_friction_cost_inr: number;
+    net_recovery_inr: number;
+    hard_block_fpr_pct: number;
+    intervention_fpr_pct: number;
+    action_counts: Record<string, number>;
+  };
+  candidate: PolicySimulationResponse['baseline'];
+  parameters: {
+    tau_threshold: number;
+    hard_block_floor: number;
+    friction_weight: number;
+    sample_size: number;
+  };
+  frozen_policy_version: string;
+  status_tag: 'SIMULATED';
+  provenance: string;
+}
+
 export interface OutcomeResultResponse {
   case_id: string;
   execution_status: string;
@@ -34,6 +55,12 @@ export interface OutcomeResultResponse {
 }
 
 export const simulationApi = {
+  async simulatePolicy(parameters: PolicySimulationResponse['parameters']): Promise<PolicySimulationResponse> {
+    return apiRequest<PolicySimulationResponse>('/api/v2/ops/simulation', {
+      method: 'POST',
+      body: JSON.stringify(parameters),
+    });
+  },
   /**
    * Run offline counterfactual simulation against the frozen backend risk engine
    */
@@ -59,7 +86,7 @@ export const simulationApi = {
    */
   async getCaseOutcome(caseId: string): Promise<OutcomeResultResponse> {
     return apiRequest<OutcomeResultResponse>(
-      `/risk/cases/${encodeURIComponent(caseId)}/outcome`,
+      `/api/v2/ops/cases/${encodeURIComponent(caseId)}/outcome`,
       {
         method: 'GET',
       }

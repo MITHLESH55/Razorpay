@@ -131,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
           <div className="flex items-center gap-1.5 bg-[#F8FAFC] px-2.5 py-1 rounded-md border border-[#D9DEE7] text-[#667085]">
             <span>Held-Out:</span>
-            <span className="font-bold text-[#15803D]">28,591 Rows</span>
+            <span className="font-bold text-[#15803D]">Artifact-backed</span>
           </div>
         </div>
 

@@ -2,7 +2,7 @@
 RiskOrbit — Authentication & Session Management FastAPI Router
 
 Provides enterprise authentication endpoints:
-- POST /api/v2/ops/auth/login       — Login with credentials or demo shortcut
+- POST /api/v2/ops/auth/login       — Login with credentials
 - GET  /api/v2/ops/auth/session     — Validate active session and permissions
 - POST /api/v2/ops/auth/logout      — Invalidate current session
 - GET  /api/v2/ops/auth/demo-users  — Retrieve pre-configured demo analyst accounts
@@ -13,17 +13,19 @@ import os
 import time
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 from src.ops.rbac import (
-    DEMO_USERS,
-    authenticate_demo_user,
+    GENERIC_AUTH_ERROR,
+    authenticate_user,
     AuthSession,
     DemoUserRecord,
     UserContext,
     UserRole,
     get_current_user,
+    ROLE_HIERARCHY,
     session_store,
+    user_repository,
 )
 
 router = APIRouter(prefix="/api/v2/ops/auth", tags=["Authentication & Session"])
@@ -43,8 +45,7 @@ class GoogleLoginRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     username_or_email: str
-    password: Optional[str] = None
-    role: Optional[UserRole] = None
+    password: str
     remember_me: bool = True
 
 
@@ -68,31 +69,60 @@ class LogoutResponse(BaseModel):
     message: str = "Session successfully terminated."
 
 
+class UserProvisionRequest(BaseModel):
+    username: str = Field(min_length=1)
+    email: str = Field(min_length=3)
+    password: str = Field(min_length=1)
+    role: UserRole = UserRole.ANALYST
+    name: str = Field(min_length=1)
+    title: Optional[str] = None
+    department: Optional[str] = None
+    capabilities: List[str] = Field(default_factory=list)
+
+
+class UserUpdateRequest(BaseModel):
+    status: Optional[str] = None
+    role: Optional[UserRole] = None
+    password: Optional[str] = Field(default=None, min_length=1)
+
+
+class UserAdminResponse(BaseModel):
+    user_id: str
+    username: str
+    email: str
+    role: UserRole
+    name: str
+    title: Optional[str] = None
+    department: Optional[str] = None
+    capabilities: List[str]
+    status: str
+    created_at: str
+    updated_at: str
+    last_login_at: Optional[str] = None
+    email_verified: bool
+
+
+def _user_admin_response(user: Any) -> UserAdminResponse:
+    return UserAdminResponse(
+        user_id=user["user_id"], username=user["username"], email=user["email"],
+        role=UserRole(user["role"]), name=user["name"], title=user["title"],
+        department=user["department"], capabilities=__import__("json").loads(user["capabilities"]),
+        status=user["status"], created_at=user["created_at"], updated_at=user["updated_at"],
+        last_login_at=user["last_login_at"], email_verified=bool(user["email_verified"]),
+    )
+
+
 @router.post("/login", response_model=LoginResponse)
 async def login(req: LoginRequest) -> LoginResponse:
     """
-    Authenticate user via email, username, or demo user identifier.
+    Authenticate user via email or username.
     Returns Bearer token and validated user context with role capabilities.
     """
     identifier = req.username_or_email.strip().lower()
+    password = req.password
 
-    # Resolve only an existing backend identity.  The request role is not an
-    # authority and cannot influence the issued session role.
-    demo_user: Optional[DemoUserRecord] = None
-    for key, candidate in DEMO_USERS.items():
-        if identifier in {key, candidate.email.lower(), candidate.user_id.lower()}:
-            demo_user = authenticate_demo_user(key, req.password)
-            break
-
-    if demo_user:
-        ctx = UserContext(
-            user_id=demo_user.user_id,
-            role=demo_user.role,
-            name=demo_user.name,
-            email=demo_user.email,
-            title=demo_user.title,
-            capabilities=demo_user.capabilities,
-        )
+    ctx = authenticate_user(identifier, password)
+    if ctx:
         duration = 86400 * 7 if req.remember_me else 86400 # 7 days vs 24h
         session = session_store.create_session(ctx, duration_seconds=duration)
         return LoginResponse(
@@ -102,7 +132,7 @@ async def login(req: LoginRequest) -> LoginResponse:
             expires_at=session.expires_at,
         )
 
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials.")
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=GENERIC_AUTH_ERROR)
 
 
 @router.get("/session", response_model=SessionValidateResponse)
@@ -141,6 +171,7 @@ async def logout(
     if authorization and authorization.startswith("Bearer "):
         token = authorization.split("Bearer ")[1].strip()
         session_store.invalidate_session(token)
+    user_repository.record_security_event("LOGOUT", user.user_id, user.user_id)
 
     return LogoutResponse()
 
@@ -150,7 +181,46 @@ async def list_demo_users() -> List[DemoUserRecord]:
     """
     List pre-seeded enterprise analyst demo accounts for quick switcher access.
     """
-    return list(DEMO_USERS.values())
+    return [user_repository.to_demo_record(user) for user in user_repository.list_users()]
+
+
+@router.get("/users", response_model=List[UserAdminResponse])
+async def list_users(user: UserContext = Depends(get_current_user)) -> List[UserAdminResponse]:
+    if user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Administrator access is required.")
+    return [_user_admin_response(account) for account in user_repository.list_users()]
+
+
+@router.post("/users", response_model=UserAdminResponse, status_code=status.HTTP_201_CREATED)
+async def create_user(req: UserProvisionRequest, user: UserContext = Depends(get_current_user)) -> UserAdminResponse:
+    if user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Administrator access is required.")
+    try:
+        account = user_repository.create_user(
+            username=req.username, email=req.email, password=req.password, role=req.role,
+            name=req.name, title=req.title, department=req.department,
+            capabilities=req.capabilities, actor_id=user.user_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    return _user_admin_response(account)
+
+
+@router.patch("/users/{user_id}", response_model=UserAdminResponse)
+async def update_user(user_id: str, req: UserUpdateRequest, user: UserContext = Depends(get_current_user)) -> UserAdminResponse:
+    if user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Administrator access is required.")
+    if req.status is not None and req.status not in {"ACTIVE", "DISABLED"}:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Status must be ACTIVE or DISABLED.")
+    if user_id == user.user_id and req.role is not None and req.role != UserRole.ADMIN:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The active administrator cannot remove their own administrator role.")
+    try:
+        account = user_repository.update_user(user_id, user.user_id, status_value=req.status, role=req.role, password=req.password)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    if account is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    return _user_admin_response(account)
 
 
 @router.get("/google/config", response_model=GoogleOAuthConfigResponse)

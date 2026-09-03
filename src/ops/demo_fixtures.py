@@ -81,7 +81,7 @@ GOLDEN_CASE_DETAILS: dict[str, dict[str, Any]] = {
     "CASE-RING-B-02": {
         "case_id": "CASE-RING-B-02",
         "pattern_name": "Pattern B: Circular Layering & Rapid Flow Retention",
-        "narrative": "A 4-hop circular UPI fund layering chain designed to obfuscate illicit merchant cash-out with 98.5% volume retention.",
+        "narrative": "A 4-hop circular UPI fund layering chain designed to obfuscate illicit merchant cash-out with 96.9% volume retention.",
         "nodes": [
             {"id": "CUST-CYCLE-201", "type": "customer", "label": "CUST-CYCLE-201 (Origin)", "role": "Originator", "tier": "PRIMARY", "risk_score": 0.92},
             {"id": "CUST-CYCLE-202", "type": "customer", "label": "CUST-CYCLE-202 (Layer 1)", "role": "Primary Target", "tier": "PRIMARY", "risk_score": 0.94},

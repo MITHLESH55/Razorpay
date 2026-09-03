@@ -55,12 +55,18 @@ from src.api.schema_control_plane import (
     VerificationResultResponse,
 )
 from src.ops.audit_log import audit_trail
-from src.ops.case_manager import CasePriority, CaseStatus, RiskCaseRecord, case_manager
+from src.ops.case_manager import CasePriority, CaseStatus, RiskCaseRecord, authorize_case_access, case_manager
 from src.ops.case_orchestrator import case_orchestrator
 from src.ops.rbac import UserContext, UserRole, get_current_user, require_role
 from src.ops.system_state import system_state
 
 router = APIRouter(tags=["Control Plane Gate"])
+
+
+def _require_case_access(case_id: str, user: UserContext) -> None:
+    case = case_manager.get_case(case_id)
+    if case is not None:
+        authorize_case_access(case, user)
 
 
 # ---------------------------------------------------------------------------
@@ -77,10 +83,11 @@ async def readiness_probe() -> SystemHealthResponse:
     """Readiness probe indicating if all core dependencies are healthy."""
     ctrls = system_state.get_state()
     graph_ok = ctrls.graph_engine_available
+    model_ok = ctrls.model_ready
 
     components = {
         "api": ComponentHealthDetail(status=ComponentHealthState.HEALTHY, details="FastAPI core active"),
-        "model": ComponentHealthDetail(status=ComponentHealthState.HEALTHY, details="Phase 1 LightGBM artifact loaded"),
+        "model": ComponentHealthDetail(status=ComponentHealthState.HEALTHY if model_ok else ComponentHealthState.OFFLINE, details="Phase 1 LightGBM artifact loaded" if model_ok else "Required scoring model unavailable"),
         "graph": ComponentHealthDetail(
             status=ComponentHealthState.HEALTHY if graph_ok else ComponentHealthState.DEGRADED,
             details="PaymentGraphEngine multi-hop graph active" if graph_ok else "Graph engine unavailable (Degraded Mode)",
@@ -90,8 +97,12 @@ async def readiness_probe() -> SystemHealthResponse:
         "persistence": ComponentHealthDetail(status=ComponentHealthState.HEALTHY, details="In-memory thread-safe storage ready"),
     }
 
-    overall = ComponentHealthState.HEALTHY if graph_ok else ComponentHealthState.DEGRADED
-    return SystemHealthResponse(overall_status=overall, components=components)
+    overall = ComponentHealthState.HEALTHY if model_ok and graph_ok else (ComponentHealthState.DEGRADED if model_ok else ComponentHealthState.OFFLINE)
+    response = SystemHealthResponse(overall_status=overall, components=components)
+    if not model_ok:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=503, detail=response.model_dump())
+    return response
 
 
 @router.get(
@@ -269,6 +280,7 @@ async def get_case_verification(
     user: UserContext = Depends(get_current_user),
 ) -> VerificationResultResponse:
     """Return non-LLM evidence verifier check result."""
+    _require_case_access(case_id, user)
     return case_orchestrator.get_verification(case_id)
 
 
@@ -283,6 +295,7 @@ async def get_case_decision(
     user: UserContext = Depends(get_current_user),
 ) -> DecisionResultResponse:
     """Return risk decision score and counterfactual explanations."""
+    _require_case_access(case_id, user)
     return case_orchestrator.get_decision(case_id)
 
 
@@ -297,6 +310,7 @@ async def preview_case_action(
     user: UserContext = Depends(get_current_user),
 ) -> ActionPreviewResponse:
     """Return action preview metadata without side effects."""
+    _require_case_access(case_id, user)
     return case_orchestrator.get_action_preview(case_id)
 
 
@@ -316,10 +330,11 @@ async def approve_case_action(
     user: UserContext = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Approve proposed case action."""
+    _require_case_access(case_id, user)
     case = case_orchestrator.approve_action(
         case_id=case_id,
-        actor=cmd.actor,
-        role=cmd.role,
+        actor=user.user_id,
+        role=user.role.value,
         reason=cmd.reason,
         expected_version=cmd.expected_version,
         idempotency_key=cmd.idempotency_key,
@@ -339,10 +354,11 @@ async def reject_case_action(
     user: UserContext = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Reject proposed case action."""
+    _require_case_access(case_id, user)
     case = case_orchestrator.reject_action(
         case_id=case_id,
-        actor=cmd.actor,
-        role=cmd.role,
+        actor=user.user_id,
+        role=user.role.value,
         reason=cmd.reason,
         expected_version=cmd.expected_version,
         idempotency_key=cmd.idempotency_key,
@@ -362,10 +378,11 @@ async def edit_case_action(
     user: UserContext = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Override proposed case action."""
+    _require_case_access(case_id, user)
     case = case_orchestrator.edit_action(
         case_id=case_id,
-        actor=cmd.actor,
-        role=cmd.role,
+        actor=user.user_id,
+        role=user.role.value,
         new_action=cmd.new_action,
         reason=cmd.reason,
         expected_version=cmd.expected_version,
@@ -390,6 +407,7 @@ async def simulate_case_action(
     user: UserContext = Depends(get_current_user),
 ) -> SimulationResultResponse:
     """Execute counterfactual simulation on case."""
+    _require_case_access(case_id, user)
     return case_orchestrator.simulate_execution(
         case_id=case_id,
         policy_version=cmd.policy_version,
@@ -409,6 +427,7 @@ async def get_case_outcome(
     user: UserContext = Depends(get_current_user),
 ) -> OutcomeResultResponse:
     """Return outcome verification result."""
+    _require_case_access(case_id, user)
     return case_orchestrator.get_outcome(case_id)
 
 
@@ -427,6 +446,7 @@ async def get_case_audit_trail(
     user: UserContext = Depends(get_current_user),
 ) -> List[AuditEventContract]:
     """Return audit events for case_id."""
+    _require_case_access(case_id, user)
     raw_audits = audit_trail.get_case_audit(case_id)
     return [
         AuditEventContract(
@@ -506,6 +526,7 @@ async def submit_case_feedback(
     user: UserContext = Depends(get_current_user),
 ) -> AnalystFeedbackResponse:
     """Submit analyst feedback for case."""
+    _require_case_access(case_id, user)
     if req.adjudication not in ("TRUE_POSITIVE", "FALSE_POSITIVE", "NEEDS_REVIEW", "EVIDENCE_INSUFFICIENT"):
         raise HTTPException(
             status_code=400,
@@ -514,8 +535,8 @@ async def submit_case_feedback(
 
     return case_orchestrator.submit_analyst_feedback(
         case_id=case_id,
-        analyst=req.analyst,
-        role=req.role,
+        analyst=user.user_id,
+        role=user.role.value,
         adjudication=req.adjudication,
         reason=req.reason,
         evidence_conflict=req.evidence_conflict,

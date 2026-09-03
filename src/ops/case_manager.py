@@ -87,6 +87,12 @@ class RiskCaseRecord(BaseModel):
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
+def authorize_case_access(case: RiskCaseRecord, user: UserContext) -> None:
+    """Enforce assigned-case scope while keeping unassigned synthetic cases shared read scope."""
+    if case.assigned_reviewer and case.assigned_reviewer != user.user_id and user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied for this assigned case.")
+
+
 def compute_priority(
     decision_score: float,
     amount_inr: float,
@@ -188,6 +194,7 @@ class CaseManager:
             case = self._cases.get(case_id)
             if not case:
                 raise HTTPException(status_code=404, detail=f"Case {case_id} not found.")
+            original_case = case.model_copy(deep=True)
 
             if expected_version is not None and case.version != expected_version:
                 raise HTTPException(
@@ -214,15 +221,22 @@ class CaseManager:
                 case.idempotency_keys.append(idempotency_key)
                 self._idempotency_map[idempotency_key] = case
 
-        audit_trail.record(
-            case_id=case.case_id,
-            actor_id=user.user_id,
-            actor_role=user.role.value,
-            event_type=AuditEventType.ACTION_APPROVED,
-            previous_state=prev_state,
-            new_state=case.status.value,
-            details={"action": case.final_action, "notes": notes, "version": case.version},
-        )
+        try:
+            audit_trail.record(
+                case_id=case.case_id,
+                actor_id=user.user_id,
+                actor_role=user.role.value,
+                event_type=AuditEventType.ACTION_APPROVED,
+                previous_state=prev_state,
+                new_state=case.status.value,
+                details={"action": case.final_action, "notes": notes, "version": case.version},
+            )
+        except RuntimeError:
+            with self._lock:
+                self._cases[case_id] = original_case
+                if idempotency_key:
+                    self._idempotency_map.pop(idempotency_key, None)
+            raise
         return case
 
     def edit_case_action(
@@ -242,6 +256,7 @@ class CaseManager:
             case = self._cases.get(case_id)
             if not case:
                 raise HTTPException(status_code=404, detail=f"Case {case_id} not found.")
+            original_case = case.model_copy(deep=True)
 
             if expected_version is not None and case.version != expected_version:
                 raise HTTPException(
@@ -273,20 +288,22 @@ class CaseManager:
                 case.idempotency_keys.append(idempotency_key)
                 self._idempotency_map[idempotency_key] = case
 
-        audit_trail.record(
-            case_id=case.case_id,
-            actor_id=user.user_id,
-            actor_role=user.role.value,
-            event_type=AuditEventType.ACTION_EDITED,
-            previous_state=prev_state,
-            new_state=case.status.value,
-            details={
-                "original_action": prev_action,
-                "new_action": new_action,
-                "reason": reason,
-                "version": case.version,
-            },
-        )
+        try:
+            audit_trail.record(
+                case_id=case.case_id,
+                actor_id=user.user_id,
+                actor_role=user.role.value,
+                event_type=AuditEventType.ACTION_EDITED,
+                previous_state=prev_state,
+                new_state=case.status.value,
+                details={"original_action": prev_action, "new_action": new_action, "reason": reason, "version": case.version},
+            )
+        except RuntimeError:
+            with self._lock:
+                self._cases[case_id] = original_case
+                if idempotency_key:
+                    self._idempotency_map.pop(idempotency_key, None)
+            raise
         return case
 
     def reject_case(
@@ -305,6 +322,7 @@ class CaseManager:
             case = self._cases.get(case_id)
             if not case:
                 raise HTTPException(status_code=404, detail=f"Case {case_id} not found.")
+            original_case = case.model_copy(deep=True)
 
             if expected_version is not None and case.version != expected_version:
                 raise HTTPException(
@@ -330,15 +348,22 @@ class CaseManager:
                 case.idempotency_keys.append(idempotency_key)
                 self._idempotency_map[idempotency_key] = case
 
-        audit_trail.record(
-            case_id=case.case_id,
-            actor_id=user.user_id,
-            actor_role=user.role.value,
-            event_type=AuditEventType.ACTION_REJECTED,
-            previous_state=prev_state,
-            new_state=case.status.value,
-            details={"original_action": prev_action, "final_action": "ALLOW", "reason": reason},
-        )
+        try:
+            audit_trail.record(
+                case_id=case.case_id,
+                actor_id=user.user_id,
+                actor_role=user.role.value,
+                event_type=AuditEventType.ACTION_REJECTED,
+                previous_state=prev_state,
+                new_state=case.status.value,
+                details={"original_action": prev_action, "final_action": "ALLOW", "reason": reason},
+            )
+        except RuntimeError:
+            with self._lock:
+                self._cases[case_id] = original_case
+                if idempotency_key:
+                    self._idempotency_map.pop(idempotency_key, None)
+            raise
         return case
 
     def simulate_execution(self, case_id: str, actor_id: str = "simulator") -> RiskCaseRecord:

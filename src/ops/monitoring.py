@@ -123,13 +123,6 @@ class OperationalMonitor:
             quantiles.p95_ms = round(sorted_lat[int(0.95 * (n - 1))], 2)
             quantiles.p99_ms = round(sorted_lat[int(0.99 * (n - 1))], 2)
         else:
-            # Synthetic baseline for cold start
-            quantiles.p50_ms = 4.2
-            quantiles.p95_ms = 18.5
-            quantiles.p99_ms = 35.1
-            quantiles.mean_ms = 6.8
-            quantiles.min_ms = 1.1
-            quantiles.max_ms = 45.0
             quantiles.sample_count = 0
 
         # Ensure default baseline actions exist in distribution for UI charts

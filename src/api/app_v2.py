@@ -22,7 +22,7 @@ from typing import Any, Optional
 import joblib
 import pandas as pd
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -33,6 +33,8 @@ from src.investigation.case_cache import CaseStorage
 from src.investigation.investigation_agent import InvestigationAgent
 from src.investigation.schema import CaseInvestigationRequest, CaseInvestigationResponse
 from src.models.main_model import get_top_signals, load_artifact
+from src.ops.rbac import UserContext, get_current_user
+from src.ops.system_state import system_state
 
 logger = logging.getLogger("riskorbit.api.v2")
 
@@ -122,13 +124,25 @@ async def startup_event() -> None:
     global _devices, _ip_entities, _instruments, _train_split
     global _graph_engine, _investigation_agent
 
-    artifact_dir = Path(os.environ.get("ARTIFACT_DIR", "artifacts/riskorbit-risk-v1"))
-    if artifact_dir.exists():
+    project_root = Path(__file__).resolve().parents[2]
+    artifact_dir = Path(os.environ.get("MODEL_ARTIFACT_DIR", os.environ.get("ARTIFACT_DIR", "artifacts/riskorbit-risk-v1")))
+    if not artifact_dir.is_absolute():
+        artifact_dir = project_root / artifact_dir
+    try:
         _pipeline_v1, _threshold_v1, _feature_names_v1 = load_artifact(artifact_dir)
+        system_state.set_model_ready(True)
         logger.info("Phase 1 model loaded from %s (threshold=%.4f)", artifact_dir, _threshold_v1)
+    except Exception as exc:
+        _pipeline_v1 = None
+        system_state.set_model_ready(False, f"Phase 1 model unavailable: {exc}")
+        logger.error("Phase 1 model failed to load from %s: %s", artifact_dir, exc)
 
-    data_dir = Path(os.environ.get("DATA_DIR", "data/raw"))
-    splits_dir = Path(os.environ.get("SPLITS_DIR", "data/splits"))
+    data_dir = Path(os.environ.get("DATA_DIR", project_root / "data/raw"))
+    splits_dir = Path(os.environ.get("SPLITS_DIR", project_root / "data/splits"))
+    if not data_dir.is_absolute():
+        data_dir = project_root / data_dir
+    if not splits_dir.is_absolute():
+        splits_dir = project_root / splits_dir
 
     if (data_dir / "transactions.csv").exists():
         _transactions = pd.read_csv(data_dir / "transactions.csv", low_memory=False)
@@ -190,7 +204,10 @@ async def health() -> HealthResponse:
 
 
 @app.post("/risk/score", response_model=ScoreResponse)
-async def score_transaction(request: ScoreRequest) -> ScoreResponse:
+async def score_transaction(
+    request: ScoreRequest,
+    user: UserContext = Depends(get_current_user),
+) -> ScoreResponse:
     """
     Score a transaction for coordinated refund abuse risk (Phase 1 baseline).
     """
@@ -259,7 +276,10 @@ async def score_transaction(request: ScoreRequest) -> ScoreResponse:
 # ---------------------------------------------------------------------------
 
 @app.post("/risk/investigate", response_model=CaseInvestigationResponse)
-async def investigate_candidate(request: CaseInvestigationRequest) -> CaseInvestigationResponse:
+async def investigate_candidate(
+    request: CaseInvestigationRequest,
+    user: UserContext = Depends(get_current_user),
+) -> CaseInvestigationResponse:
     """
     Phase 2: Trigger bounded relationship investigation around a candidate.
 
@@ -299,7 +319,10 @@ async def investigate_candidate(request: CaseInvestigationRequest) -> CaseInvest
 
 
 @app.get("/risk/cases/{case_id}", response_model=CaseInvestigationResponse)
-async def get_case(case_id: str) -> CaseInvestigationResponse:
+async def get_case(
+    case_id: str,
+    user: UserContext = Depends(get_current_user),
+) -> CaseInvestigationResponse:
     """Retrieve a stored investigation case by case_id."""
     case = _case_storage.get_case(case_id)
     if case is None:
@@ -308,7 +331,10 @@ async def get_case(case_id: str) -> CaseInvestigationResponse:
 
 
 @app.get("/risk/cases/{case_id}/graph")
-async def get_case_graph(case_id: str) -> dict[str, Any]:
+async def get_case_graph(
+    case_id: str,
+    user: UserContext = Depends(get_current_user),
+) -> dict[str, Any]:
     """Return graph statistics for an investigation case."""
     case = _case_storage.get_case(case_id)
     if case is None:
@@ -325,7 +351,10 @@ async def get_case_graph(case_id: str) -> dict[str, Any]:
 
 
 @app.get("/risk/cases/{case_id}/evidence")
-async def get_case_evidence(case_id: str) -> dict[str, Any]:
+async def get_case_evidence(
+    case_id: str,
+    user: UserContext = Depends(get_current_user),
+) -> dict[str, Any]:
     """Return the grounded evidence bundle for an investigation case."""
     case = _case_storage.get_case(case_id)
     if case is None:
@@ -342,7 +371,9 @@ async def get_case_evidence(case_id: str) -> dict[str, Any]:
 
 
 @app.get("/risk/evaluation")
-async def get_root_evaluation_metrics() -> dict[str, Any]:
+async def get_root_evaluation_metrics(
+    user: UserContext = Depends(get_current_user),
+) -> dict[str, Any]:
     """Single Source of Truth: Canonical evaluation metrics from reports/RISKORBIT_FINAL_METRICS.json."""
     return await routes_ops.get_evaluation_details()
 

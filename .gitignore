@@ -22,7 +22,10 @@ Thumbs.db
 
 *.log
 
-# Large generated datasets — regenerate from project scripts
+# Local authentication database
+data/processed/riskorbit_users.db
+
+# Large generated datasets ï¿½ regenerate from project scripts
 data/raw/*.csv
 data/processed/*.csv
 data/splits/*.csv
