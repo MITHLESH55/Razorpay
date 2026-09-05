@@ -53,6 +53,7 @@ class DemoUserRecord(BaseModel):
     department: str
     password_hint: str
     capabilities: List[str]
+    evaluation_only: bool = True
 
 
 class AuthSession(BaseModel):
@@ -83,6 +84,17 @@ LOCAL_SEED_USERS = [
     {"user_id": "viewer_01", "role": UserRole.VIEWER, "name": "Audit & Compliance Officer", "email": "audit.read@riskorbit.internal", "title": "Independent Regulatory Auditor", "department": "Model Risk & Regulatory Oversight", "capabilities": ["Read-Only Operational Dashboard", "Held-Out Evaluation Metrics Inspection", "Immutable Cryptographic Audit Ledger Access", "Distribution Drift & Stability Verification"]},
 ]
 
+# Deterministic default passwords for the four disposable evaluation identities.
+# These are NOT developer credentials. They are intentionally public, disposable,
+# and scoped exclusively to evaluation accounts in non-production environments.
+# Override per-identity via RISKORBIT_SEED_PASSWORD_<USER_ID_UPPER> env var.
+DEFAULT_EVALUATION_PASSWORDS: dict[str, str] = {
+    "analyst_01":        "RiskOrbit@Analyst2026",
+    "senior_analyst_01": "RiskOrbit@Senior2026",
+    "admin_01":          "RiskOrbit@Admin2026",
+    "viewer_01":         "RiskOrbit@Viewer2026",
+}
+
 DEMO_USERS: dict[str, DemoUserRecord] = {
     u["user_id"]: DemoUserRecord(
         user_id=u["user_id"],
@@ -93,6 +105,7 @@ DEMO_USERS: dict[str, DemoUserRecord] = {
         department=u["department"],
         password_hint="Contact your RiskOrbit administrator for access.",
         capabilities=u["capabilities"],
+        evaluation_only=True,
     )
     for u in LOCAL_SEED_USERS
 }
@@ -202,18 +215,37 @@ class UserRepository:
             self._seed(connection)
 
     def _seed(self, connection: sqlite3.Connection) -> None:
-        if os.getenv("RISKORBIT_ENV", "local").lower() in {"production", "prod"}:
+        """Idempotently provision evaluation identities in non-production environments.
+
+        Users are created with INSERT OR IGNORE so re-running never duplicates or
+        overwrites existing rows.  Real production users are never touched because
+        the guard below exits early when ENVIRONMENT is 'production' / 'prod'.
+
+        Passwords resolve in priority order:
+          1. RISKORBIT_SEED_PASSWORD_<USER_ID_UPPER> environment variable
+          2. DEFAULT_EVALUATION_PASSWORDS built-in defaults (safe for public repos)
+        """
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(users)").fetchall()}
+        if "evaluation_only" not in columns:
+            connection.execute("ALTER TABLE users ADD COLUMN evaluation_only INTEGER NOT NULL DEFAULT 0")
+        if os.getenv("ENVIRONMENT", "local").lower() in {"production", "prod"}:
             return
         for seed in LOCAL_SEED_USERS:
-            seed_password = os.getenv(f"RISKORBIT_SEED_PASSWORD_{seed['user_id'].upper()}")
+            # Prefer an explicit env-var override; fall back to the published defaults.
+            seed_password = (
+                os.getenv(f"RISKORBIT_SEED_PASSWORD_{seed['user_id'].upper()}")
+                or DEFAULT_EVALUATION_PASSWORDS.get(seed["user_id"])
+            )
             if not seed_password:
+                # Should never happen given DEFAULT_EVALUATION_PASSWORDS covers all seeds,
+                # but guard defensively so we never store an empty hash.
                 continue
             now = datetime.now(timezone.utc).isoformat()
             connection.execute("""
                 INSERT OR IGNORE INTO users
                 (user_id, username, email, password_hash, role, name, title, department,
-                 capabilities, status, created_at, updated_at, email_verified)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, 1)
+                 capabilities, status, created_at, updated_at, email_verified, evaluation_only)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, 1, 1)
             """, (seed["user_id"], seed["user_id"], seed["email"].lower(),
                   hash_password(seed_password), seed["role"].value, seed["name"],
                   seed["title"], seed["department"], json.dumps(seed["capabilities"]), now, now))
@@ -239,6 +271,10 @@ class UserRepository:
     def list_users(self) -> list[sqlite3.Row]:
         with self._connect() as connection:
             return connection.execute("SELECT * FROM users ORDER BY username").fetchall()
+
+    def list_evaluation_users(self) -> list[sqlite3.Row]:
+        with self._connect() as connection:
+            return connection.execute("SELECT * FROM users WHERE evaluation_only = 1 ORDER BY username").fetchall()
 
     def record_login_failure(self, user: sqlite3.Row) -> None:
         count = int(user["failed_login_count"]) + 1
@@ -298,7 +334,7 @@ class UserRepository:
         return UserContext(user_id=user["user_id"], role=UserRole(user["role"]), name=user["name"], email=user["email"], title=user["title"], capabilities=json.loads(user["capabilities"]))
 
     def to_demo_record(self, user: sqlite3.Row) -> DemoUserRecord:
-        return DemoUserRecord(user_id=user["user_id"], role=UserRole(user["role"]), name=user["name"], email=user["email"], title=user["title"] or "", department=user["department"] or "", password_hint="Contact your RiskOrbit administrator for access.", capabilities=json.loads(user["capabilities"]))
+        return DemoUserRecord(user_id=user["user_id"], role=UserRole(user["role"]), name=user["name"], email=user["email"], title=user["title"] or "", department=user["department"] or "", password_hint="Disposable evaluation identity. Use the evaluator quick-start credentials.", capabilities=json.loads(user["capabilities"]), evaluation_only=bool(user["evaluation_only"]))
 
 
 user_repository = UserRepository()

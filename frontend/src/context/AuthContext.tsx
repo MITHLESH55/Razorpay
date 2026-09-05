@@ -24,6 +24,7 @@ export interface AuthContextType {
   session: AuthSession | null;
   error: string | null;
   login: (usernameOrEmail: string, password: string, rememberMe?: boolean) => Promise<AuthSession>;
+  loginAsEvaluationRole: (role: 'ANALYST' | 'SENIOR_ANALYST' | 'ADMIN' | 'VIEWER', rememberMe?: boolean) => Promise<AuthSession>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -137,6 +138,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginAsEvaluationRole = async (
+    role: 'ANALYST' | 'SENIOR_ANALYST' | 'ADMIN' | 'VIEWER',
+    rememberMe = true
+  ): Promise<AuthSession> => {
+    setStatus('AUTHENTICATING');
+    setError(null);
+    try {
+      const resp = await authApi.loginAsEvaluationRole(role, rememberMe);
+      setAuthToken(resp.token, rememberMe);
+      const validated = await authApi.validateSession();
+      if (!validated.valid || !validated.user) {
+        throw new Error('The backend did not validate the evaluation session.');
+      }
+      const newSession: AuthSession = {
+        session_id: validated.session_id || resp.session_id,
+        token: resp.token,
+        user: validated.user,
+        expires_at: validated.expires_at || resp.expires_at,
+      };
+      setUser(validated.user);
+      setSession(newSession);
+      setStatus('AUTHENTICATED');
+      return newSession;
+    } catch (err: any) {
+      clearAuthToken();
+      setStatus('UNAUTHENTICATED');
+      setError(err.message || 'Evaluation login failed');
+      throw err;
+    }
+  };
+
   // Logout action
   const logout = async (): Promise<void> => {
     try {
@@ -160,6 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         error,
         login,
+        loginAsEvaluationRole,
         logout,
         refresh,
       }}

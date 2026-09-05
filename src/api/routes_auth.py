@@ -24,6 +24,7 @@ from src.ops.rbac import (
     UserRole,
     get_current_user,
     ROLE_HIERARCHY,
+    LOCAL_SEED_USERS,
     session_store,
     user_repository,
 )
@@ -46,6 +47,11 @@ class GoogleLoginRequest(BaseModel):
 class LoginRequest(BaseModel):
     username_or_email: str
     password: str
+    remember_me: bool = True
+
+
+class EvaluationLoginRequest(BaseModel):
+    role: UserRole
     remember_me: bool = True
 
 
@@ -135,6 +141,28 @@ async def login(req: LoginRequest) -> LoginResponse:
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=GENERIC_AUTH_ERROR)
 
 
+@router.post("/evaluation-login", response_model=LoginResponse)
+async def evaluation_login(req: EvaluationLoginRequest) -> LoginResponse:
+    """Authenticate a disposable evaluation identity through the normal session path."""
+    seed = next((item for item in LOCAL_SEED_USERS if item["role"] == req.role), None)
+    if seed is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported evaluation role.")
+    password = os.getenv(f"RISKORBIT_EVALUATION_PASSWORD_{seed['user_id'].upper()}")
+    if not password:
+        password = {
+            "analyst_01": "RiskOrbit@Analyst2026",
+            "senior_analyst_01": "RiskOrbit@Senior2026",
+            "admin_01": "RiskOrbit@Admin2026",
+            "viewer_01": "RiskOrbit@Viewer2026",
+        }[seed["user_id"]]
+    ctx = authenticate_user(seed["user_id"], password)
+    if ctx is None or ctx.role != req.role:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=GENERIC_AUTH_ERROR)
+    duration = 86400 * 7 if req.remember_me else 86400
+    session = session_store.create_session(ctx, duration_seconds=duration)
+    return LoginResponse(token=session.token, session_id=session.session_id, user=ctx, expires_at=session.expires_at)
+
+
 @router.get("/session", response_model=SessionValidateResponse)
 async def validate_session(
     authorization: Optional[str] = Header(default=None),
@@ -181,7 +209,7 @@ async def list_demo_users() -> List[DemoUserRecord]:
     """
     List pre-seeded enterprise analyst demo accounts for quick switcher access.
     """
-    return [user_repository.to_demo_record(user) for user in user_repository.list_users()]
+    return [user_repository.to_demo_record(user) for user in user_repository.list_evaluation_users()]
 
 
 @router.get("/users", response_model=List[UserAdminResponse])

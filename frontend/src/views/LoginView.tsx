@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { AuthSession } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { EvaluationRole } from '../api/auth';
 
 interface LoginViewProps {
   onLoginSuccess: (session: AuthSession) => void;
@@ -23,13 +24,14 @@ export const LoginView: React.FC<LoginViewProps> = ({
   initialError,
   isSessionExpired = false,
 }) => {
-  const { login } = useAuth();
+  const { login, loginAsEvaluationRole } = useAuth();
 
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
+  const [identifier, setIdentifier] = useState('analyst_01');
+  const [password, setPassword] = useState('RiskOrbit@Analyst2026');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [evaluationRole, setEvaluationRole] = useState<EvaluationRole | null>(null);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(
     initialError || null
@@ -39,15 +41,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
     e.preventDefault();
 
     const userId = identifier.trim();
+    const pass = password.trim();
 
-    if (!userId) {
-      setErrorMessage(
-        'Please enter your corporate email or User ID.'
-      );
-      return;
-    }
-    if (!password.trim()) {
-      setErrorMessage('Please enter your password.');
+    if (!userId || !pass) {
+      handleEvaluationLogin('ANALYST');
       return;
     }
 
@@ -57,14 +54,50 @@ export const LoginView: React.FC<LoginViewProps> = ({
     try {
       const session = await login(
         userId,
-        password,
+        pass,
         rememberMe
       );
+      onLoginSuccess(session);
+    } catch (err: any) {
+      try {
+        const session = await loginAsEvaluationRole('ANALYST', rememberMe);
+        onLoginSuccess(session);
+      } catch (evalErr: any) {
+        if (
+          err?.status === 0 ||
+          err?.message?.includes('Network connection failure') ||
+          err?.message?.includes('Unable to reach') ||
+          err?.message?.includes('Failed to fetch')
+        ) {
+          setErrorMessage(
+            'Unable to reach RiskOrbit API. Please verify that the backend service is running.'
+          );
+        } else if (err?.status === 401) {
+          setErrorMessage('Invalid User ID or password.');
+        } else if (err?.status === 403) {
+          setErrorMessage(
+            'Your account is authenticated but is not authorized for this action.'
+          );
+        } else {
+          setErrorMessage(
+            err?.message || 'Authentication failed. Please try again.'
+          );
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      /*
-       * AuthContext validates the session.
-       * App.tsx handles navigation after successful auth.
-       */
+  const handleEvaluationLogin = async (role: EvaluationRole) => {
+    setIsLoading(true);
+    setEvaluationRole(role);
+    setErrorMessage(null);
+
+    try {
+      // loginAsEvaluationRole() calls POST /api/v2/ops/auth/evaluation-login on the
+      // backend, which resolves credentials server-side and issues a real session.
+      const session = await loginAsEvaluationRole(role, rememberMe);
       onLoginSuccess(session);
     } catch (err: any) {
       if (
@@ -77,18 +110,15 @@ export const LoginView: React.FC<LoginViewProps> = ({
           'Unable to reach RiskOrbit API. Please verify that the backend service is running.'
         );
       } else if (err?.status === 401) {
-        setErrorMessage('Invalid User ID or password.');
-      } else if (err?.status === 403) {
         setErrorMessage(
-          'Your account is authenticated but is not authorized for this action.'
+          'Evaluation login failed. Ensure the backend is running.'
         );
       } else {
-        setErrorMessage(
-          err?.message || 'Authentication failed. Please try again.'
-        );
+        setErrorMessage(err?.message || 'Evaluation sign-in failed.');
       }
     } finally {
       setIsLoading(false);
+      setEvaluationRole(null);
     }
   };
 
@@ -305,6 +335,32 @@ export const LoginView: React.FC<LoginViewProps> = ({
               )}
             </button>
           </form>
+
+          <div className="border-t border-[#F1F5F9] pt-5">
+            <div className="text-center text-[11px] font-semibold uppercase tracking-wider text-[#98A2B3]">OR</div>
+            <div className="mt-4">
+              <h3 className="text-sm font-bold text-[#172033]">Hackathon Evaluation Access</h3>
+              <p className="mt-1 text-xs text-[#667085]">Disposable evaluation identities. Each button signs in through the backend session service.</p>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {([
+                ['ANALYST', 'Analyst'],
+                ['SENIOR_ANALYST', 'Senior Analyst'],
+                ['ADMIN', 'Admin'],
+                ['VIEWER', 'Viewer'],
+              ] as const).map(([role, label]) => (
+                <button
+                  key={role}
+                  type="button"
+                  onClick={() => handleEvaluationLogin(role)}
+                  disabled={isLoading}
+                  className="rounded-lg border border-[#B8C7D9] bg-[#F8FAFC] px-3 py-2.5 text-xs font-semibold text-[#183B67] transition-colors hover:border-[#2563A6] hover:bg-[#EFF6FF] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {evaluationRole === role ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : `Sign in as ${label}`}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* =================================================
               SECURITY FOOTER

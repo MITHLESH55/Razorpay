@@ -24,6 +24,8 @@ export interface LoginResponse {
   expires_at: number;
 }
 
+export type EvaluationRole = 'ANALYST' | 'SENIOR_ANALYST' | 'ADMIN' | 'VIEWER';
+
 export interface SessionValidateResponse {
   valid: boolean;
   session_id: string;
@@ -45,6 +47,20 @@ export const authApi = {
     const data = await apiRequest<LoginResponse>('/api/v2/ops/auth/login', {
       method: 'POST',
       body: JSON.stringify(payload),
+      skipAuth: true,
+    });
+    return {
+      token: data.token,
+      user: data.user,
+      session_id: data.session_id,
+      expires_at: data.expires_at,
+    };
+  },
+
+  async loginAsEvaluationRole(role: EvaluationRole, rememberMe = true): Promise<AuthSession> {
+    const data = await apiRequest<LoginResponse>('/api/v2/ops/auth/evaluation-login', {
+      method: 'POST',
+      body: JSON.stringify({ role, remember_me: rememberMe }),
       skipAuth: true,
     });
     return {

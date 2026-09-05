@@ -30,6 +30,23 @@ def test_list_demo_users():
     assert "SENIOR_ANALYST" in roles
     assert "ADMIN" in roles
     assert "VIEWER" in roles
+    assert all(user["evaluation_only"] is True for user in data)
+
+
+def test_evaluation_login_endpoint_creates_real_session():
+    response = client.post(
+        "/api/v2/ops/auth/evaluation-login",
+        json={"role": "ANALYST"},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["user"]["role"] == "ANALYST"
+    session = client.get(
+        "/api/v2/ops/auth/session",
+        headers={"Authorization": f"Bearer {payload['token']}"},
+    )
+    assert session.status_code == 200
+    assert session.json()["session_id"] == payload["session_id"]
 
 
 def test_login_demo_user_success():
