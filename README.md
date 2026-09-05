@@ -530,10 +530,12 @@ It does not provide offensive security capabilities and does not authorize irrev
 - Reproducibility metadata
 - Versioned model artifacts
 
+
+## Scope & Disclaimer
+
 The project is intended as a **hackathon research/prototype implementation**, not a claim of production deployment or production certification.
 
 ---
 
-## License
-
-This repository is provided for hackathon, research, and evaluation purposes.
+**Built by Mithlesh Yadav** for Razorpay AI Buildathon 2026 — Track 02  
+🔗 [LinkedIn](https://www.linkedin.com/in/mithleshyadav977/) · 📧 [mithleshyadav2062@gmail.com](mailto:mithleshyadav2062@gmail.com)
