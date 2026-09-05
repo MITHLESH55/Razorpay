@@ -40,6 +40,20 @@ https://drive.google.com/file/d/1A9ZDi-gJBdNOk2lzbyWCueFQJxbF3Y6R/view?usp=drive
 ![Governance & Kill Switches](docs/screenshots/governance_killswitches.png)
 
 
+## Problem Statement Alignment
+
+RiskOrbit is designed around Track 02 — AI Risk Manager and focuses on
+defense-only detection of coordinated refund/return abuse.
+
+| Requirement (Track 02) | How RiskOrbit Addresses It |
+|---|---|
+| Build a working detector, verifier, or auto-responder for one class of loss. | RiskOrbit acts as an abuse-ring risk detector for coordinated refund/return abuse, connecting customers, devices, addresses, payment instruments, transactions, and refund behavior into risk cases. |
+| Show measured precision and recall on a held-out test set. | RiskOrbit reports precision, recall, F1 and PR-AUC on held-out evaluation data. See the [Phase 2 Final Report](reports/PHASE2_FINAL_REPORT.md) and [Graph Feature Ablation Report](reports/PHASE2_GRAPH_ABLATION.md). |
+| Example direction: Abuse-ring sentinel. | RiskOrbit specifically detects coordinated abuse rings using graph relationships and ring-level risk signals. |
+| Honest metrics including false-positive cost. | RiskOrbit evaluates false-positive rate and false-positive cost alongside precision, recall and F1, making the operational cost of incorrect flags explicit. See the [Phase 2 Final Report](reports/PHASE2_FINAL_REPORT.md). |
+| Strictly defense-only; anything offense-capable is disqualified. | RiskOrbit is a defensive risk-management and investigation system focused on detection, evidence, explainability, governance and auditable decisions. |
+
+
 
 ## What RiskOrbit Does
 
