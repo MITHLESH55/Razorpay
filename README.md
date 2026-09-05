@@ -417,19 +417,21 @@ The current operational evaluation snapshot additionally reports:
 
 ## 6. Phase 2 Verification Reports
 
+## 6. Phase 2 Verification Reports
+
 The repository includes detailed technical validation and audit reports:
 
-- Master Report: [PHASE2_FINAL_REPORT.md](PHASE2_FINAL_REPORT.md)
-- Delta Analysis (Phase 1 → Phase 2): [PHASE2_DELTA_REPORT.md](PHASE2_DELTA_REPORT.md)
-- End-to-End Final Audit: [PHASE2_CANDIDATE_COVERAGE.md](PHASE2_CANDIDATE_COVERAGE.md)
-- Feature Ablation: [PHASE2_GRAPH_ABLATION.md](PHASE2_GRAPH_ABLATION.md)
-- Graph Data Quality: [GRAPH_DATA_QUALITY.md](GRAPH_DATA_QUALITY.md)
-- Investigation Agent Benchmark: [INVESTIGATION_EVALUATION.md](INVESTIGATION_EVALUATION.md)
-- Evidence Grounding & Anti-Hallucination: [EVIDENCE_GROUNDING_REPORT.md](EVIDENCE_GROUNDING_REPORT.md)
-- Ring Detection Analysis: [RING_DETECTION_ANALYSIS.md](RING_DETECTION_ANALYSIS.md)
-- Hard-Negative Safety: [HARD_NEGATIVE_GRAPH_REPORT.md](HARD_NEGATIVE_GRAPH_REPORT.md)
-- Temporal Generalization: [TEMPORAL_PHASE2_REPORT.md](TEMPORAL_PHASE2_REPORT.md)
-- Diagnostic Failure Analysis: [PHASE2_FAILURE_ANALYSIS.md](PHASE2_FAILURE_ANALYSIS.md)
+- Master Report: [PHASE2_FINAL_REPORT.md](reports/PHASE2_FINAL_REPORT.md)
+- Delta Analysis (Phase 1 → Phase 2): [PHASE2_DELTA_REPORT.md](reports/PHASE2_DELTA_REPORT.md)
+- End-to-End Final Audit: [PHASE2_CANDIDATE_COVERAGE.md](reports/PHASE2_CANDIDATE_COVERAGE.md)
+- Feature Ablation: [PHASE2_GRAPH_ABLATION.md](reports/PHASE2_GRAPH_ABLATION.md)
+- Graph Data Quality: [GRAPH_DATA_QUALITY.md](reports/GRAPH_DATA_QUALITY.md)
+- Investigation Agent Benchmark: [INVESTIGATION_EVALUATION.md](reports/INVESTIGATION_EVALUATION.md)
+- Evidence Grounding & Anti-Hallucination: [EVIDENCE_GROUNDING_REPORT.md](reports/EVIDENCE_GROUNDING_REPORT.md)
+- Ring Detection Analysis: [RING_DETECTION_ANALYSIS.md](reports/RING_DETECTION_ANALYSIS.md)
+- Hard-Negative Safety: [HARD_NEGATIVE_GRAPH_REPORT.md](reports/HARD_NEGATIVE_GRAPH_REPORT.md)
+- Temporal Generalization: [TEMPORAL_PHASE2_REPORT.md](reports/TEMPORAL_PHASE2_REPORT.md)
+- Diagnostic Failure Analysis: [PHASE2_FAILURE_ANALYSIS.md](reports/PHASE2_FAILURE_ANALYSIS.md)
 
 Additional repository documentation covers data definitions, leakage auditing, false-positive cost, frontend integration, and engineering validation.
 
