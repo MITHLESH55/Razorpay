@@ -8,6 +8,32 @@ Individual refund transactions can look legitimate in isolation. RiskOrbit looks
 
 ---
 
+
+## Screenshots
+
+### Dashboard
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Risk Queue
+![Risk Queue](docs/screenshots/risk_queue.png)
+
+### Case Investigation
+![Case Investigation](docs/screenshots/case_investigation.png)
+
+### Audit Ledger
+![Audit Ledger](docs/screenshots/audit_ledger.png)
+
+### Model Evaluation
+![Model Evaluation](docs/screenshots/model_evaluation.png)
+
+### Policy Simulation
+![Policy Simulation](docs/screenshots/policy_simulation.png)
+
+### Governance & Kill Switches
+![Governance & Kill Switches](docs/screenshots/governance_killswitches.png)
+
+
+
 ## What RiskOrbit Does
 
 ```text
